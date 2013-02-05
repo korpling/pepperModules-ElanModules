@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CMD xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://www.clarin.eu/cmd/components/avatech/avatech-recognizer.xsd">
+    <Header></Header>
+    <Resources>
+        <ResourceProxyList></ResourceProxyList>
+        <JournalFileProxyList></JournalFileProxyList>
+        <ResourceRelationList></ResourceRelationList>
+    </Resources>
+    <Components>
+        <RECOGNIZER>
+        	<!-- 
+        	For Recognizer API extensions the regonizerType is "direct"  
+        	The DemoRecognizer is pure Java and runs on Windows, Mac and Linux, all 3 "run" attributes should be present
+        	The DemoRecognizer doesn't really do anything with the media file. Both an input element of type audio
+        	and of type video are there, to make it show up in the Audio and in the Video tab.
+        	The "info" element contains the name as it will be shown in the user interface. Try to define a name
+        	that makes it likely to be unique, e.g by including an institution or university acronym.
+        	-->
+            <recognizer recognizerType="direct" runLinux="demo.DemoRecognizer" runMac="demo.DemoRecognizer" runWin="demo.DemoRecognizer"
+                info="Demo Recognizer PL">DemoRec</recognizer>
+            
+            <documentation>doc.html</documentation>
+                
+            <!--
+            In ELAN the "mimetypes" will be ignored for "direct" recognizers. The recognizer will be polled whether
+            it can handle the media files associated with the annotation document.
+            -->
+            <input level="basic" type="audio" optional="false" mimetypes="audio/x-wav"
+                info="Mono or stereo WAV to scan">source</input>
+            <input level="basic" type="video" optional="false" mimetypes="video/mpg"
+                info="Video source to scan">videosource</input>
+            <output></output>
+        </RECOGNIZER>
+    </Components>
+</CMD>

@@ -1,0 +1,34 @@
+Altijd na aanpassen van EditMonitorImpl rmic doen:
+
+rmic -d /data/hsm-archive/eudico/classes -classpath /data/hsm-archive/eudico/classes:/data/hsm-archive/eudico/jdk/jre/li
+b/rt.jar mpi.eudico.server.corpora.editable.EditMonitorImpl
+
+
+
+
+
+Aanpassingen aan bestaande code:
+
+in ...server.corpora.clomimpl.abstr
+
+	EditableTierImpl extends RemoteEditable
+
+ipv TierImpl extends UnicastRemoteObject
+
+als je die veranderd moet je dus rmic draaien:
+
+rmic -d /data/hsm-archive/eudico/classes -classpath /data/hsm-archive/eudico/classes:/data/hsm-archive/eudico/jdk/jre/lib/rt.jar mpi.eudico.server.corpora.clomimpl.abstr.EditableTierImpl
+
+
+
+
+in ...server.corpora.clomimpl.gesture
+
+	GestureTier extends EditableTierImpl
+
+ipv GestureTier extends TierImpl
+
+Daarom moeten nu 2 abstract methods van RemoteEditable worden geimplementeerd:
+
+	setEditableDataValue(Object value, EditIdentity identity)
+	getEditableDataValue()

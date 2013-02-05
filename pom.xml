@@ -1,0 +1,110 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>de.hu_berlin.german.korpling.saltnpepper</groupId>
+  <artifactId>pepperModules-ElanModule</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>pepperModules-ElanModule</name>
+  <url>http://maven.apache.org</url>
+
+  <scm>
+    <developerConnection>scm:svn:https://svn.mpi.nl/LAT/elan</developerConnection>
+  </scm>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  
+  <repositories>
+    <repository>
+    <id>korpling</id>
+    <name>korpling maven repo</name>
+    <url>http://korpling.german.hu-berlin.de/maven2</url>
+    </repository>
+    <repository>
+      <id>MPI</id>
+      <name>MPI LAT Repository</name>
+      <url>http://lux15.mpi.nl/nexus/content/groups/public</url>
+    </repository>
+  </repositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>de.hu_berlin.german.korpling.saltnpepper</groupId>
+      <artifactId>salt-saltCommon</artifactId>
+      <version>1.1.5</version>
+      <type>bundle</type>
+    </dependency>
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <version>2.9.0</version>
+    </dependency>
+    <dependency>
+      <groupId>xalan</groupId>
+      <artifactId>xalan</artifactId>
+      <version>2.4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jdom</groupId>
+      <artifactId>jdom</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>batik</groupId>
+      <artifactId>batik</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>jxta</groupId>
+      <artifactId>jxta</artifactId>
+      <version>2.0</version>
+    </dependency>
+    <!-- parent has 1.2.16 -->
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId> 
+      <version>1.2.14</version> 
+    </dependency>
+    <dependency>
+      <groupId>hsqldb</groupId>
+      <artifactId>hsqldb</artifactId>
+      <version>1.8.0.7</version>
+    </dependency>
+    <dependency>
+      <groupId>nl.mpi.annot.search</groupId>
+      <artifactId>mfsearch</artifactId>
+      <version>1.5</version>
+    </dependency>
+      <dependency>
+      <groupId>nl.mpi.annot</groupId>
+      <artifactId>annot-tools</artifactId>
+      <version>1.1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>nl.mpi.annot.search</groupId>
+      <artifactId>annot-search-lib</artifactId>
+      <version>1.4.1</version>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.1.0</version>
+        <extensions>true</extensions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

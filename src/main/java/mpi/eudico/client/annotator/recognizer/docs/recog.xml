@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!DOCTYPE project [
+	<!ENTITY ant_properties SYSTEM "ant-properties.xml">
+]>
+<project name="recog" default="build">
+
+<description> 
+	This script builds a plugable recognizer for ELAN in a jar file
+	Besides the normal compilation and building tasks to make the jar
+	there must also be placed service provider related information in the jar
+</description>
+
+<!--property name="SRCDIR" value="src/java"/-->
+<property name="SRCDIR" value="src"/>
+<!-- change this to your package name -->
+<property name="RECOGNIZERDIR" value="demo"/>
+<property name="LIBDIR" value="lib"/>
+<property name="BUILDDIR" value="build"/>
+<property name="DISTDIR" value="dist"/>
+<property name="COMPLIANCE" value="1.5"/>
+
+<patternset id="javasources.set">
+		<include name="${RECOGNIZERDIR}/**/*.java"/>
+</patternset>
+
+<fileset id="classpath.jars" dir="${LIBDIR}">
+		<include name="elan.jar"/>
+</fileset>
+
+<target name="clean" description="Empty build directory">
+  <delete dir="${BUILDDIR}"/>
+  <mkdir  dir="${BUILDDIR}"/>
+</target>
+
+<!-- compiles java files in 'javasources.set' -->
+<target name="compile" depends="clean" description="Compiles the sources with cleaning">
+	<echo message="Compiling ${ant.project.name}"/>
+	<javac destdir="${BUILDDIR}" listfiles="true" verbose="no" debug="yes" deprecation="on"
+		optimize="yes" target="${COMPLIANCE}" source="${COMPLIANCE}" srcdir="${SRCDIR}">
+		<patternset refid="javasources.set"/>
+		<classpath>
+			<fileset refid="classpath.jars"/>
+		</classpath>
+	</javac>
+	<delete dir="${DISTDIR}"/>
+</target>
+
+<!-- creates an unsigned jar in the dist dir. -->
+<target name="build" depends="compile"
+	description="Creates an unsigned jar in the dist directory">
+	<mkdir dir="${DISTDIR}"/>
+	<jar jarfile="${DISTDIR}/${ant.project.name}.jar" compress="true" index="false">
+		<fileset dir="${BUILDDIR}">
+			<include name="${RECOGNIZERDIR}/**/*"/>
+		</fileset> 
+	</jar>
+	<copy file="${SRCDIR}/recognizer.cmdi" todir="${DISTDIR}"/>
+  <copy file="${SRCDIR}/doc.html" todir="${DISTDIR}"/>
+</target>
+
+</project>

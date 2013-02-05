@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CMD xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://www.clarin.eu/cmd/components/avatech/avatech-recognizer.xsd">	
+    <Header></Header>
+    <Resources>
+        <ResourceProxyList></ResourceProxyList>
+        <JournalFileProxyList></JournalFileProxyList>
+        <ResourceRelationList></ResourceRelationList>
+    </Resources>
+    <Components>
+    	<RECOGNIZER>
+    		<recognizer recognizerType="direct" 
+    			runLinux="nl.mpi.recognizer.remote.maus.MausWsClient"
+		  		runWin="nl.mpi.recognizer.remote.maus.MausWsClient"
+		  		runMac="nl.mpi.recognizer.remote.maus.MausWsClient"
+		  		info="BAS - WebMAUS Basic">bas_maus_basic</recognizer>
+    		
+    		<textparam level = "basic" convoc="deu eng ita ekk hun por spa" default="deu" info="Language of the input">LANGUAGE</textparam>
+        	<!-- make it easy to change the service name? -->
+        	<textparam level = "basic" convoc="runMAUSBasicGerman" default="runMAUSBasicGerman" info="service name">ServiceName</textparam>
+    		<textparam level = "basic" convoc="TEXT" default="TEXT" info="Text parameter name">TextParamName</textparam>
+    		<textparam level = "basic" convoc="SIGNAL" default="SIGNAL" info="Signal parameter name">SignalParamName</textparam>
+		  
+		  	<!-- input parameters -->
+    		<input level = "basic" type="audio" optional="false" mimetypes="audio/x-wav" info="Input audio file">SignalUrl</input>
+    		<input level = "basic" type="tier" optional="true" mimetypes="text/plain" info="Orthographic tier (text)">TierUrl</input>
+    		<input level = "basic" type="auxiliary" optional="true" mimetypes="text/plain" info="Orthographic tier (text)">TextUrl</input>    
+    		
+		  	<!-- output parameters -->
+    		<output></output>
+    		
+        </RECOGNIZER>
+    </Components>
+</CMD>

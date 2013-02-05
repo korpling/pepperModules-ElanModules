@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CMD xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://www.clarin.eu/cmd/components/avatech/avatech-recognizer.xsd">
+    <Header/>
+    <Resources>
+        <ResourceProxyList/>
+        <JournalFileProxyList/>
+        <ResourceRelationList/>
+    </Resources>
+    <Components>
+        <RECOGNIZER>
+            <recognizer recognizerType="direct" runLinux="nl.mpi.recognizer.remote.clam.ClamRecognizer" runWin="nl.mpi.recognizer.remote.clam.ClamRecognizer" runMac="nl.mpi.recognizer.remote.clam.ClamRecognizer" info="AAM-LR Phone level audio segmentation">  aam_lr_segmentation</recognizer>
+
+            <textparam level="basic" convoc="http://lux17.mpi.nl/aamlr/ http://mpcserver.let.ru.nl/aamlr/" default="http://lux17.mpi.nl/aamlr/" info="Base URL of AAM-LR service">base_url</textparam>
+
+            <!-- input parameters -->
+            <input type="audio" level="basic" optional="false" mimetypes="audio/x-wav" info="Input audio file">source_audio</input>
+
+            <!-- output parameters -->
+            <output type="tier" level="basic" optional="false" mimetypes="text/xml" info="Tier holding the phone level segmentation">xmloutput</output>
+
+        </RECOGNIZER>
+    </Components>
+</CMD>

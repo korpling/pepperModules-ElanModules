@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Rename this file "recognizer.cmdi" for actual use -->
+<!-- Anything outside of the RECOGNIZER element can be left untouched -->
+<CMD xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"    
+   xsi:noNamespaceSchemaLocation="http://www.clarin.eu/cmd/components/avatech/avatech-recognizer.xsd">
+    <Header></Header>
+    <Resources>
+        <ResourceProxyList></ResourceProxyList>
+        <JournalFileProxyList></JournalFileProxyList>
+        <ResourceRelationList></ResourceRelationList>
+    </Resources>
+    <Components>
+        <RECOGNIZER>
+        	<!-- 
+        	For Recognizer API extensions the regonizerType is "direct", for stand-alone components running on the same
+        	computer the type should be "local". That are currently the types supported by ELAN.
+        	For "direct" the "run" attributes (runMac etc.) should have the value of the fully qualified name of the 
+        	class implementing "Recognizer.java". For "local" the executable command per platform should be the value.
+        	The "info" element contains the name as it will be shown in the user interface. Try to define a name
+        	that makes it likely to be unique, e.g by including an institution or university acronym.
+        	-->
+            <recognizer recognizerType="local" runLinux="anApp.sh" runMac="anApp.app" runWin="anApp.exe"
+                info="Event Recognizer ABC">TagEvents</recognizer>   
+            
+            <!-- For a more detailed documentation, a HTML file linked to the recognizer. This HTML ships with the 
+                 recognizer and gives extra explanations for using the recognizer and information about licenses, 
+                 authors and contacting them, version numbers etc. The link can be either a relative link to a file
+                 in the same directory tree as the CMDI file or (not recommended) a direct http link to a recognizer 
+                 homepage elsewhere. 
+            -->            
+            <documentation>doc.html</documentation>
+            
+            <!--
+            Any number of numerical parameters can be specified, with their possible range, the default value,
+            a descriptive info attribute (for UI's) and an identifier as content of the element. 
+            -->
+            <numparam level="basic"  type="int" min="10" max="1000" default="500"
+                info="Parameter description">par_1</numparam>
+
+            <!-- 
+            Any number of textual parameters can be specified, either allowing free text or providing
+            a controlled vocabulary (space separated).
+            NOTE: If convoc is empty, any text can be entered.
+            -->
+            <textparam level="basic" convoc="normal verbose debug" default="normal"
+                info="Adjust amount of messages during calculation here">loglevel</textparam>
+                
+            <!--
+            Any number of input and output parameters can be specified.
+            At least one input element of type audio or video should be specified.
+            Other input and output types (tier, timeseries etc.) and their required formats are described 
+            in the interfacing specification at
+            http://www.mpi.nl/research/research-projects/language-archiving-technology/avatech/
+            -->
+            <input level="basic" type="audio"  optional="false" mimetypes="audio/x-wav"
+                info="Mono or stereo WAV to scan">source</input>
+                
+            <output level="basic" type="tier"   optional="true" mimetypes="text/xml"
+                info="Segments output">segments_0</output>
+        </RECOGNIZER>
+    </Components>
+</CMD>

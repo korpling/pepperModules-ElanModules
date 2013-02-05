@@ -1,0 +1,3 @@
+rmic -d /data/hsm-archive/eudico/classes -classpath /data/hsm-archive/eudico/classes:/data/hsm-archive/eudico/jdk/jre/lib/rt.jar mpi.eudico.server.corpora.editable.EditMonitorImpl
+
+rmic -d /data/hsm-archive/eudico/classes -classpath /data/hsm-archive/eudico/classes:/data/hsm-archive/eudico/jdk/jre/lib/rt.jar mpi.eudico.server.corpora.clomimpl.abstr.EditableTierImpl
