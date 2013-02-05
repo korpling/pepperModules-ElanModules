@@ -17,10 +17,14 @@
  */
 package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules;
 
+import java.io.IOException;
+import java.util.Hashtable;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.util.URI;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.log.LogService;
 
@@ -50,7 +54,6 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SElementId;
  * @version 1.0
  *
  */
-//TODO /1/: change the name of the component, for example use the format name and the ending Importer (FORMATImporterComponent)
 @Component(name="ElanImporterComponent", factory="PepperImporterComponentFactory")
 @Service(value=PepperImporter.class)
 public class ElanImporter extends PepperImporterImpl implements PepperImporter
@@ -58,9 +61,7 @@ public class ElanImporter extends PepperImporterImpl implements PepperImporter
 	public ElanImporter()
 	{
 		super();
-		//TODO /2/: change the name of the module, for example use the format name and the ending Exporter (FORMATExporter)
 		this.name= "ElanImporter";
-		//TODO /4/:change "sample" with format name and 1.0 with format version to support
 		this.addSupportedFormat("elan", "4.5.0", null);
 	}
 	
@@ -88,50 +89,37 @@ public class ElanImporter extends PepperImporterImpl implements PepperImporter
 	public void importCorpusStructure(SCorpusGraph sCorpusGraph)
 			throws PepperModuleException
 	{
-		//TODO /6/: implement this method 	
-	}
-	
-	/**
-	 * If this method is not really implemented, it will call the Method {@link #start(SElementId)} for every document 
-	 * and corpus, which shall be processed. If it is not really implemented, the method-call will be serial and
-	 * and not parallel. To implement a parallelization override this method and take care, that your code is
-	 * thread-safe. 
-	 * For getting an impression how to implement this method, here is a snippet of super class 
-	 * PepperImporter of this method:
-	 * <br/>
-	 * <code>
-	 * boolean isStart= true;
-	 * SElementId sElementId= null;
-	 * while ((isStart) || (sElementId!= null))
-	 * {	
-	 *  isStart= false;
-	 *		sElementId= this.getPepperModuleController().get();
-	 *		if (sElementId== null)
-	 *			break;
-	 *		
-	 *		//call for using push-method
-	 *		this.start(sElementId);
-	 *		
-	 *		if (this.returningMode== RETURNING_MODE.PUT)
-	 *		{	
-	 *			this.getPepperModuleController().put(sElementId);
-	 *		}
-	 *		else if (this.returningMode== RETURNING_MODE.FINISH)
-	 *		{	
-	 *			this.getPepperModuleController().finish(sElementId);
-	 *		}
-	 *		else 
-	 *			throw new PepperModuleException("An error occurs in this module (name: "+this.getName()+"). The returningMode isn't correctly set (its "+this.getReturningMode()+"). Please contact module supplier.");
-	 *		this.end();
-	 *	}
-	 *</code>
-	 * After all documents were processed this method of super class will call the method {@link #end()}.
-	 */
-	@Override
-	public void start() throws PepperModuleException
-	{
-		//TODO /7/: delete this, if you want to parallelize processing 
-		super.start();
+		this.timeImportSCorpusStructure= System.nanoTime();
+		this.setSCorpusGraph(corpusGraph);
+		if (this.getSCorpusGraph()== null)
+			throw new ELANImporterException(this.name+": Cannot start with importing corpus, because salt project isn�t set.");
+		
+		if (this.getCorpusDefinition()== null)
+			throw new ELANImporterException(this.name+": Cannot start with importing corpus, because no corpus definition to import is given.");
+		if (this.getCorpusDefinition().getCorpusPath()== null)
+			throw new ELANImporterException(this.name+": Cannot start with importing corpus, because the path of given corpus definition is null.");
+		
+		if (this.getCorpusDefinition().getCorpusPath().isFile())
+		{
+			this.documentResourceTable= new Hashtable<SElementId, URI>();
+			//clean uri in corpus path (if it is a folder and ends with/, / has to be removed)
+			if (	(this.getCorpusDefinition().getCorpusPath().toFileString().endsWith("/")) || 
+					(this.getCorpusDefinition().getCorpusPath().toFileString().endsWith("\\")))
+			{
+				this.getCorpusDefinition().setCorpusPath(this.getCorpusDefinition().getCorpusPath().trimSegments(1));
+			}
+			try {
+				EList<String> endings= new BasicEList<String>();
+				endings.add("eaf");
+				this.documentResourceTable= this.createCorpusStructure(this.getCorpusDefinition().getCorpusPath(), null, endings);
+			} catch (IOException e) {
+				throw new ELANImporterException(this.name+": Cannot start with importing corpus, because saome exception occurs: ",e);
+			}
+			finally
+			{
+				timeImportSCorpusStructure= System.nanoTime()- timeImportSCorpusStructure;
+			}
+		}	
 	}
 	
 	/**
