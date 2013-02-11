@@ -17,39 +17,20 @@
  */
 package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules;
 
-import java.io.IOException;
-import java.util.Hashtable;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
-import org.eclipse.emf.common.util.BasicEList;
-import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.common.util.URI;
-import org.osgi.service.component.ComponentContext;
-import org.osgi.service.log.LogService;
 
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperExceptions.PepperModuleException;
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.CorpusDefinition;
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperImporter;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperModule;
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.impl.PepperImporterImpl;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.SaltProject;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpus;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpusGraph;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SDocument;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SElementId;
 
 /**
- * This is a sample {@link PepperImporter}, which can be used for creating individual Importers for the 
- * Pepper Framework. Therefore you have to take a look to todo's and adapt the code.
- * 
- * <ul>
- *  <li>the salt model to fill, manipulate or export can be accessed via {@link #getSaltProject()}</li>
- * 	<li>special parameters given by Pepper workflow can be accessed via {@link #getSpecialParams()}</li>
- *  <li>a place to store temprorary datas for processing can be accessed via {@link #getTemproraries()}</li>
- *  <li>a place where resources of this bundle are, can be accessed via {@link #getResources()}</li>
- *  <li>a logService can be accessed via {@link #getLogService()}</li>
- * </ul>
+ * @author Tom Ruette
  * @author Florian Zipser
  * @version 1.0
  *
@@ -89,37 +70,7 @@ public class ElanImporter extends PepperImporterImpl implements PepperImporter
 	public void importCorpusStructure(SCorpusGraph sCorpusGraph)
 			throws PepperModuleException
 	{
-		this.timeImportSCorpusStructure= System.nanoTime();
-		this.setSCorpusGraph(corpusGraph);
-		if (this.getSCorpusGraph()== null)
-			throw new ELANImporterException(this.name+": Cannot start with importing corpus, because salt project isn�t set.");
-		
-		if (this.getCorpusDefinition()== null)
-			throw new ELANImporterException(this.name+": Cannot start with importing corpus, because no corpus definition to import is given.");
-		if (this.getCorpusDefinition().getCorpusPath()== null)
-			throw new ELANImporterException(this.name+": Cannot start with importing corpus, because the path of given corpus definition is null.");
-		
-		if (this.getCorpusDefinition().getCorpusPath().isFile())
-		{
-			this.documentResourceTable= new Hashtable<SElementId, URI>();
-			//clean uri in corpus path (if it is a folder and ends with/, / has to be removed)
-			if (	(this.getCorpusDefinition().getCorpusPath().toFileString().endsWith("/")) || 
-					(this.getCorpusDefinition().getCorpusPath().toFileString().endsWith("\\")))
-			{
-				this.getCorpusDefinition().setCorpusPath(this.getCorpusDefinition().getCorpusPath().trimSegments(1));
-			}
-			try {
-				EList<String> endings= new BasicEList<String>();
-				endings.add("eaf");
-				this.documentResourceTable= this.createCorpusStructure(this.getCorpusDefinition().getCorpusPath(), null, endings);
-			} catch (IOException e) {
-				throw new ELANImporterException(this.name+": Cannot start with importing corpus, because saome exception occurs: ",e);
-			}
-			finally
-			{
-				timeImportSCorpusStructure= System.nanoTime()- timeImportSCorpusStructure;
-			}
-		}	
+		//TODO /6/: implement this method 	
 	}
 	
 	/**
@@ -139,45 +90,4 @@ public class ElanImporter extends PepperImporterImpl implements PepperImporter
 			//TODO /8/: create your own mapping
 		}//only if given sElementId belongs to an object of type SDocument or SCorpus
 	}
-	
-	/**
-	 * This method is called by method {@link #start()} of super class {@link PepperModule}. If you do not implement
-	 * this method, it will call {@link #start(SElementId)}, for all super corpora in current {@link SaltProject}. The
-	 * {@link SElementId} refers to one of the super corpora. 
-	 */
-	@Override
-	public void end() throws PepperModuleException
-	{
-		//TODO /9/: implement this method when necessary 
-		super.end();
-	}
-	
-//================================ start: methods used by OSGi
-	/**
-	 * This method is called by the OSGi framework, when a component with this class as class-entry
-	 * gets activated.
-	 * @param componentContext OSGi-context of the current component
-	 */
-	protected void activate(ComponentContext componentContext) 
-	{
-		this.setSymbolicName(componentContext.getBundleContext().getBundle().getSymbolicName());
-		{//just for logging: to say, that the current module has been activated
-			if (this.getLogService()!= null)
-				this.getLogService().log(LogService.LOG_DEBUG,this.getName()+" is activated...");
-		}//just for logging: to say, that the current module has been activated
-	}
-
-	/**
-	 * This method is called by the OSGi framework, when a component with this class as class-entry
-	 * gets deactivated.
-	 * @param componentContext OSGi-context of the current component
-	 */
-	protected void deactivate(ComponentContext componentContext) 
-	{
-		{//just for logging: to say, that the current module has been deactivated
-			if (this.getLogService()!= null)
-				this.getLogService().log(LogService.LOG_DEBUG,this.getName()+" is deactivated...");
-		}	
-	}
-//================================ start: methods used by OSGi
 }

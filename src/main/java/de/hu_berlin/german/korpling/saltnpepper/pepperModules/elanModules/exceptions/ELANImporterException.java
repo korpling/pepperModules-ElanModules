@@ -21,8 +21,6 @@ import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperExceptions.PepperMo
 
 public class ELANImporterException extends PepperModuleException
 {
-	
-
 	/**
 	 * 
 	 */
