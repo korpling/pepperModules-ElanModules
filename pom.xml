@@ -1,284 +1,301 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>de.hu_berlin.german.korpling.saltnpepper</groupId>
-  <artifactId>pepperModules-ElanModules</artifactId>
-  <name>${project.groupId}.${project.artifactId}</name>
-  <version>1.1.0-SNAPSHOT</version>
-  <packaging>bundle</packaging>
-  <distributionManagement>
-    <repository>
-      <id>korpling</id>
-      <name>korpling maven repo</name>
-      <url>file:///srv/www/maven2/</url>
-      <!-- <url>scpexe://korpling.german.hu-berlin.de/srv/www/maven2/</url>-->
-    </repository>
-  </distributionManagement>
-  <repositories>
-    <repository>
-      <id>korpling</id>
-      <name>korpling maven repo</name>
-      <url>http://korpling.german.hu-berlin.de/maven2</url>
-    </repository>
-  </repositories>
-  <!-- 	Declares this project to be an extension of the project pepper-parentModule. The parent project for instance contains all dependencies 
-		necessary for using the SaltNPepper environment (all Pepper projects and all Salt projects).-->
-  <parent>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <groupId>de.hu_berlin.german.korpling.saltnpepper</groupId>
-    <artifactId>pepper-parentModule</artifactId>
-    <version>1.1.5-SNAPSHOT</version>
-  </parent>
-  <!-- TODO: make a description -->
-  <description></description>
-  <url>https://korpling.german.hu-berlin.de/p/projects/peppermodules-elanmodules</url>
-  <issueManagement>
-  	<system>Redmine</system>
-  	<url>https://korpling.german.hu-berlin.de/p/projects/peppermodules-elanmodules/issues</url>
-  </issueManagement>
-  <ciManagement>
-  	<system>Jenkins</system>
-  	<url>https://korpling.german.hu-berlin.de/jenkins/</url>
-  </ciManagement>
-  <inceptionYear>2013</inceptionYear>
-  <organization>
-  	<name>Humboldt Univerity of Berlin, Sprachgeschichte</name>
-  </organization>
-  <scm>
-    <developerConnection>scm:svn:https://korpling.german.hu-berlin.de/svn/saltnpepper/PepperModules/ElanModules/trunk/</developerConnection>
-    <url>scm:svn:https://korpling.german.hu-berlin.de/svn/saltnpepper/PepperModules/ElanModules/</url>
-  </scm>
- 
-  <dependencies>
-    <!-- TODO /10/ ... put here all the dependencies you need, which are not already included in the parent project...-->
-  </dependencies>
-  <build>
-    <plugins>
-      <!-- start: Plugin for automatic releasing -->
-      <plugin>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.1</version>
-        <configuration>
-          <tagBase>
-           https://korpling.german.hu-berlin.de/svn/saltnpepper/PepperModules/ElanModules/tags/
-          </tagBase>
-          <releaseProfiles>release</releaseProfiles>
-          <goals>assembly:single deploy</goals>
-        </configuration>
-      </plugin>
-      <!-- 	start: creation of bundle jar
-			This plugIn creates a META-INF folder if not present and adds the entries into the MANIFEST.MF file required for OSGi. It
-			also creates an OSGI-INF folder necessary for using service-components in OSGi.
-	  -->
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>2.1.0</version>
-        <extensions>true</extensions>
-        <executions>
-          <execution>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>bundle</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <manifestLocation>${basedir}/META-INF</manifestLocation>
-          <source>1.6</source>
-          <target>1.6</target>
-          <instructions>
-            <Bundle-Name>${project.artifactId}</Bundle-Name>
-            <Bundle-SymbolicName>${project.groupId}.${project.artifactId};singleton:=true</Bundle-SymbolicName>
-            <Bundle-Version>${project.version}</Bundle-Version>
-            <Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
-            <Service-Component>OSGI-INF/${component.descriptor.name}</Service-Component>
-            <Include-Resource>{maven-resources}, LICENSE, NOTICE</Include-Resource>
-            <Bundle-ClassPath>.,{maven-dependencies}, lib/elan-4.5.1b.jar</Bundle-ClassPath> 
-            <Include-Resource>{maven-resources}, LICENSE, NOTICE, lib/elan-4.5.1b.jar=lib/elan-4.5.1b.jar</Include-Resource>
-          </instructions>
-        </configuration>
-      </plugin>
-      <!-- end: creation of bundle jar -->
-      
-      <!-- start: maven site plugin -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-site-plugin</artifactId>
-        <version>3.1</version>
-        <configuration>
-          <reportPlugins>
+    <artifactId>pepperModules-ElanModules</artifactId>
+    <name>${project.groupId}.${project.artifactId}</name>
+    <version>1.1.0-SNAPSHOT</version>
+    <packaging>bundle</packaging>
+    <distributionManagement>
+        <repository>
+            <id>korpling</id>
+            <name>korpling maven repo</name>
+            <url>file:///srv/www/maven2/</url>
+            <!-- <url>scpexe://korpling.german.hu-berlin.de/srv/www/maven2/</url>-->
+        </repository>
+    </distributionManagement>
+    <repositories>
+        <repository>
+            <id>korpling</id>
+            <name>korpling maven repo</name>
+            <url>http://korpling.german.hu-berlin.de/maven2</url>
+        </repository>
+        <repository>
+            <id>MPI</id>
+            <name>MPI LAT Repository</name>
+            <url>http://lux15.mpi.nl/nexus/content/groups/public</url>
+        </repository>
+    </repositories>
+    <!-- 	Declares this project to be an extension of the project pepper-parentModule. The parent project for instance contains all dependencies 
+        necessary for using the SaltNPepper environment (all Pepper projects and all Salt projects).-->
+    <parent>
+        <groupId>de.hu_berlin.german.korpling.saltnpepper</groupId>
+        <artifactId>pepper-parentModule</artifactId>
+        <version>1.1.5-SNAPSHOT</version>
+    </parent>
+    <!-- TODO: make a description -->
+    <description/>
+    <url>https://korpling.german.hu-berlin.de/p/projects/peppermodules-elanmodules</url>
+    <issueManagement>
+        <system>Redmine</system>
+        <url>https://korpling.german.hu-berlin.de/p/projects/peppermodules-elanmodules/issues</url>
+    </issueManagement>
+    <ciManagement>
+        <system>Jenkins</system>
+        <url>https://korpling.german.hu-berlin.de/jenkins/</url>
+    </ciManagement>
+    <inceptionYear>2013</inceptionYear>
+    <organization>
+        <name>Humboldt Univerity of Berlin, Sprachgeschichte</name>
+    </organization>
+    <scm>
+        <developerConnection>scm:svn:https://korpling.german.hu-berlin.de/svn/saltnpepper/PepperModules/ElanModules/trunk/</developerConnection>
+        <url>scm:svn:https://korpling.german.hu-berlin.de/svn/saltnpepper/PepperModules/ElanModules/</url>
+    </scm>
+
+    <dependencies>
+        <!-- mvn install:install-file -Dfile=.\lib\elan-4.5.1b.jar -DgroupId=nl.mpi -DartifactId=elan -Dversion=4.5.1b -Dpackaging=jar -->
+        <dependency>
+            <groupId>nl.mpi</groupId>
+            <artifactId>elan</artifactId>
+            <version>4.5.1b</version>
+        </dependency>
+        <dependency>
+            <groupId>nl.mpi.annot.search</groupId>
+            <artifactId>mfsearch</artifactId>
+            <version>1.5</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <!-- start: Plugin for automatic releasing -->
             <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-project-info-reports-plugin</artifactId>
-              <version>2.4</version>
-              <configuration>
-                <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
-              </configuration>
-              <reports>
-                <report>index</report>
-                <report>summary</report>
-                <report>license</report>
-              </reports>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.1</version>
+                <configuration>
+                    <tagBase>
+                        https://korpling.german.hu-berlin.de/svn/saltnpepper/PepperModules/ElanModules/tags/ </tagBase>
+                    <releaseProfiles>release</releaseProfiles>
+                    <goals>assembly:single deploy</goals>
+                </configuration>
             </plugin>
-          </reportPlugins>
-        </configuration>
-      </plugin>
-      <!-- end: maven site plugin -->
-      <!-- start: of docbook plugin -->
-      <plugin>
-        <groupId>com.agilejava.docbkx</groupId>
-        <artifactId>docbkx-maven-plugin</artifactId>
-        <version>2.0.14</version>
-        <executions>
-          <execution>
-            <id>pdf</id>
-            <goals>
-              <goal>generate-pdf</goal>
-            </goals>
-            <configuration>
-              <sourceDirectory>${project.build.directory}/docbkx</sourceDirectory>
-              <targetDirectory>${project.build.directory}/manual</targetDirectory>
-              <targetFileExtension>${project.version}.pdf</targetFileExtension>
-              <includes>manual.xml</includes>
-              <foCustomization>${basedir}/src/main/docbkx/custom.xsl</foCustomization>
-              <highlightSource>true</highlightSource>
-              <admonGraphics>true</admonGraphics>
-              <admonGraphicsPath>${basedir}/src/main/docbkx/images/docbook/</admonGraphicsPath>
-              <admonGraphicsExtension>.svg</admonGraphicsExtension>
-              <useSvg>true</useSvg>
-              <useExtensions>true</useExtensions>
-              <sectionAutolabel>true</sectionAutolabel>
-              <!-- font configuration -->
-              <bodyFontFamily>DejaVu Serif</bodyFontFamily>
-              <monospaceFontFamily>DejaVu Sans Mono</monospaceFontFamily>
-              <titleFontFamily>DejaVu Sans</titleFontFamily>
-              <fonts>
-                <font>
-                  <name>DejaVu Sans Mono</name>
-                  <style>normal</style>
-                  <weight>normal</weight>
-                  <embedFile>${basedir}/src/main/fonts/DejaVuSansMono.ttf</embedFile>
-                  <metricsFile>${project.build.directory}/fonts/DejaVuSansMono-metrics.xml</metricsFile>
-                </font>
-                <font>
-                  <name>DejaVu Serif</name>
-                  <style>normal</style>
-                  <weight>normal</weight>
-                  <embedFile>${basedir}/src/main/fonts/DejaVuSerif.ttf</embedFile>
-                  <metricsFile>${project.build.directory}/fonts/DejaVuSerif-metrics.xml</metricsFile>
-                </font>
-                <font>
-                  <name>DejaVu Serif</name>
-                  <style>italic</style>
-                  <weight>normal</weight>
-                  <embedFile>${basedir}/src/main/fonts/DejaVuSerif-Italic.ttf</embedFile>
-                  <metricsFile>${project.build.directory}/fonts/DejaVuSerif-Italic-metrics.xml</metricsFile>
-                </font>
-                <font>
-                  <name>DejaVu Serif</name>
-                  <style>normal</style>
-                  <weight>bold</weight>
-                  <embedFile>${basedir}/src/main/fonts/DejaVuSerif-Bold.ttf</embedFile>
-                  <metricsFile>${project.build.directory}/fonts/DejaVuSerif-Bold-metrics.xml</metricsFile>
-                </font>
-                <font>
-                  <name>DejaVu Serif</name>
-                  <style>italic</style>
-                  <weight>bold</weight>
-                  <embedFile>${basedir}/src/main/fonts/DejaVuSerif-BoldItalic.ttf</embedFile>
-                  <metricsFile>${project.build.directory}/fonts/DejaVuSerif-BoldItalic-metrics.xml</metricsFile>
-                </font>
-                <font>
-                  <name>DejaVu Sans</name>
-                  <style>normal</style>
-                  <weight>bold</weight>
-                  <embedFile>${basedir}/src/main/fonts/DejaVuSans-Bold.ttf</embedFile>
-                  <metricsFile>${project.build.directory}/fonts/DejaVuSans-Bold-metrics.xml</metricsFile>
-                </font>
-                <font>
-                  <name>DejaVu Sans</name>
-                  <style>normal</style>
-                  <weight>normal</weight>
-                  <embedFile>${basedir}/src/main/fonts/DejaVuSans.ttf</embedFile>
-                  <metricsFile>${project.build.directory}/fonts/DejaVuSans-metrics.xml</metricsFile>
-                </font>
-              </fonts>
-            </configuration>
-            <phase>site</phase>
-          </execution>
-          <execution>
-            <id>html</id>
-            <goals>
-              <goal>generate-html</goal>
-            </goals>
-            <configuration>
-              <sourceDirectory>${project.build.directory}/docbkx</sourceDirectory>
-              <targetDirectory>${project.build.directory}/manual</targetDirectory>
-              <targetFileExtension>${project.version}.html</targetFileExtension>
-              <includes>manual.xml</includes>
-              <highlightSource>true</highlightSource>
-              <admonGraphics>true</admonGraphics>
-              <admonGraphicsPath>${basedir}/src/main/docbkx/images/docbook/</admonGraphicsPath>
-              <admonGraphicsExtension>.svg</admonGraphicsExtension>
-              <useSvg>true</useSvg>
-              <useExtensions>true</useExtensions>
-              <preProcess>
-                <copy todir="${project.build.directory}/manual/images">
-                  <fileset dir="${basedir}/src/main/docbkx/images">
-                  </fileset>
-                </copy>
-              </preProcess>
-            </configuration>
-            <phase>site</phase>
-          </execution>
-        </executions>
-        <configuration>
-          <xincludeSupported>true</xincludeSupported>
-        </configuration>
-                
-      </plugin>
-      
-      <plugin>
-        <groupId>com.agilejava.docbkx</groupId>
-        <artifactId>docbkx-fop-support</artifactId>
-        <version>2.0.14</version>
-        <executions>
-          <execution>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>generate</goal>
-            </goals>
-            <configuration>
-              <sourceDirectory>${basedir}/src/main/fonts/</sourceDirectory>
-              <ansi>false</ansi>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>2.5</version>
-        <executions>
-          <execution>
-            <id>copy-filter-docbook</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.build.directory}/docbkx</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>${basedir}/src/main/docbkx/</directory>
-                  <filtering>true</filtering>
-                </resource>
-              </resources>             
-            </configuration>            
-          </execution>
-        </executions>
-      </plugin>
-      <!-- end of docbook plugin -->
-    </plugins>
-  </build>
+            <!-- 	start: creation of bundle jar
+                This plugIn creates a META-INF folder if not present and adds the entries into the MANIFEST.MF file required for OSGi. It
+                also creates an OSGI-INF folder necessary for using service-components in OSGi.
+            -->
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>2.1.0</version>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>bundle</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <manifestLocation>${basedir}/META-INF</manifestLocation>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <instructions>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+                        <Bundle-SymbolicName>${project.groupId}.${project.artifactId};singleton:=true</Bundle-SymbolicName>
+                        <Bundle-Version>${project.version}</Bundle-Version>
+                        <Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
+                        <Service-Component>OSGI-INF/${component.descriptor.name}</Service-Component>
+                        <Include-Resource>{maven-resources}, LICENSE, NOTICE</Include-Resource>
+                        <Bundle-ClassPath>.,{maven-dependencies},
+                            lib/elan-4.5.1b.jar</Bundle-ClassPath>
+                        <Include-Resource>{maven-resources}, LICENSE, NOTICE,
+                            lib/elan-4.5.1b.jar=lib/elan-4.5.1b.jar</Include-Resource>
+                    </instructions>
+                </configuration>
+            </plugin>
+            <!-- end: creation of bundle jar -->
+
+            <!-- start: maven site plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <reportPlugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-project-info-reports-plugin</artifactId>
+                            <version>2.4</version>
+                            <configuration>
+                                <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+                            </configuration>
+                            <reports>
+                                <report>index</report>
+                                <report>summary</report>
+                                <report>license</report>
+                            </reports>
+                        </plugin>
+                    </reportPlugins>
+                </configuration>
+            </plugin>
+            <!-- end: maven site plugin -->
+            <!-- start: of docbook plugin -->
+            <plugin>
+                <groupId>com.agilejava.docbkx</groupId>
+                <artifactId>docbkx-maven-plugin</artifactId>
+                <version>2.0.14</version>
+                <executions>
+                    <execution>
+                        <id>pdf</id>
+                        <goals>
+                            <goal>generate-pdf</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirectory>${project.build.directory}/docbkx</sourceDirectory>
+                            <targetDirectory>${project.build.directory}/manual</targetDirectory>
+                            <targetFileExtension>${project.version}.pdf</targetFileExtension>
+                            <includes>manual.xml</includes>
+                            <foCustomization>${basedir}/src/main/docbkx/custom.xsl</foCustomization>
+                            <highlightSource>true</highlightSource>
+                            <admonGraphics>true</admonGraphics>
+                            <admonGraphicsPath>${basedir}/src/main/docbkx/images/docbook/</admonGraphicsPath>
+                            <admonGraphicsExtension>.svg</admonGraphicsExtension>
+                            <useSvg>true</useSvg>
+                            <useExtensions>true</useExtensions>
+                            <sectionAutolabel>true</sectionAutolabel>
+                            <!-- font configuration -->
+                            <bodyFontFamily>DejaVu Serif</bodyFontFamily>
+                            <monospaceFontFamily>DejaVu Sans Mono</monospaceFontFamily>
+                            <titleFontFamily>DejaVu Sans</titleFontFamily>
+                            <fonts>
+                                <font>
+                                    <name>DejaVu Sans Mono</name>
+                                    <style>normal</style>
+                                    <weight>normal</weight>
+                                    <embedFile>${basedir}/src/main/fonts/DejaVuSansMono.ttf</embedFile>
+                                    <metricsFile>${project.build.directory}/fonts/DejaVuSansMono-metrics.xml</metricsFile>
+                                </font>
+                                <font>
+                                    <name>DejaVu Serif</name>
+                                    <style>normal</style>
+                                    <weight>normal</weight>
+                                    <embedFile>${basedir}/src/main/fonts/DejaVuSerif.ttf</embedFile>
+                                    <metricsFile>${project.build.directory}/fonts/DejaVuSerif-metrics.xml</metricsFile>
+                                </font>
+                                <font>
+                                    <name>DejaVu Serif</name>
+                                    <style>italic</style>
+                                    <weight>normal</weight>
+                                    <embedFile>${basedir}/src/main/fonts/DejaVuSerif-Italic.ttf</embedFile>
+                                    <metricsFile>${project.build.directory}/fonts/DejaVuSerif-Italic-metrics.xml</metricsFile>
+                                </font>
+                                <font>
+                                    <name>DejaVu Serif</name>
+                                    <style>normal</style>
+                                    <weight>bold</weight>
+                                    <embedFile>${basedir}/src/main/fonts/DejaVuSerif-Bold.ttf</embedFile>
+                                    <metricsFile>${project.build.directory}/fonts/DejaVuSerif-Bold-metrics.xml</metricsFile>
+                                </font>
+                                <font>
+                                    <name>DejaVu Serif</name>
+                                    <style>italic</style>
+                                    <weight>bold</weight>
+                                    <embedFile>${basedir}/src/main/fonts/DejaVuSerif-BoldItalic.ttf</embedFile>
+                                    <metricsFile>${project.build.directory}/fonts/DejaVuSerif-BoldItalic-metrics.xml</metricsFile>
+                                </font>
+                                <font>
+                                    <name>DejaVu Sans</name>
+                                    <style>normal</style>
+                                    <weight>bold</weight>
+                                    <embedFile>${basedir}/src/main/fonts/DejaVuSans-Bold.ttf</embedFile>
+                                    <metricsFile>${project.build.directory}/fonts/DejaVuSans-Bold-metrics.xml</metricsFile>
+                                </font>
+                                <font>
+                                    <name>DejaVu Sans</name>
+                                    <style>normal</style>
+                                    <weight>normal</weight>
+                                    <embedFile>${basedir}/src/main/fonts/DejaVuSans.ttf</embedFile>
+                                    <metricsFile>${project.build.directory}/fonts/DejaVuSans-metrics.xml</metricsFile>
+                                </font>
+                            </fonts>
+                        </configuration>
+                        <phase>site</phase>
+                    </execution>
+                    <execution>
+                        <id>html</id>
+                        <goals>
+                            <goal>generate-html</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirectory>${project.build.directory}/docbkx</sourceDirectory>
+                            <targetDirectory>${project.build.directory}/manual</targetDirectory>
+                            <targetFileExtension>${project.version}.html</targetFileExtension>
+                            <includes>manual.xml</includes>
+                            <highlightSource>true</highlightSource>
+                            <admonGraphics>true</admonGraphics>
+                            <admonGraphicsPath>${basedir}/src/main/docbkx/images/docbook/</admonGraphicsPath>
+                            <admonGraphicsExtension>.svg</admonGraphicsExtension>
+                            <useSvg>true</useSvg>
+                            <useExtensions>true</useExtensions>
+                            <preProcess>
+                                <copy todir="${project.build.directory}/manual/images">
+                                    <fileset dir="${basedir}/src/main/docbkx/images"> </fileset>
+                                </copy>
+                            </preProcess>
+                        </configuration>
+                        <phase>site</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <xincludeSupported>true</xincludeSupported>
+                </configuration>
+
+            </plugin>
+
+            <plugin>
+                <groupId>com.agilejava.docbkx</groupId>
+                <artifactId>docbkx-fop-support</artifactId>
+                <version>2.0.14</version>
+                <executions>
+                    <execution>
+                        <phase>pre-site</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirectory>${basedir}/src/main/fonts/</sourceDirectory>
+                            <ansi>false</ansi>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.5</version>
+                <executions>
+                    <execution>
+                        <id>copy-filter-docbook</id>
+                        <phase>pre-site</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/docbkx</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/src/main/docbkx/</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- end of docbook plugin -->
+        </plugins>
+    </build>
 </project>
