@@ -1,4 +1,4 @@
-package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.playground.dddPreparer;
+package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.cleanUp;
 
 import mpi.eudico.client.annotator.ElanLocale;
 import mpi.eudico.client.annotator.commands.CommandAction;

@@ -1,4 +1,4 @@
-package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.playground.dddPreparer;
+package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.cleanUp;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 
-import de.hu_berlin.german.korpling.saltnpepper.pepperModules_ElanModule.DDDPreparer.SaveEAF;
 import mpi.eudico.server.corpora.clom.Transcription;
 import mpi.eudico.server.corpora.clomimpl.abstr.AbstractAnnotation;
 import mpi.eudico.server.corpora.clomimpl.abstr.AlignableAnnotation;
