@@ -1,4 +1,4 @@
-package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.playground.salt.elan2salt;
+package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.importer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,6 +14,15 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructu
 public class ElanWrapper {
 	
 	private TranscriptionImpl elan;
+	private String primTierName= "tok";
+	public void setPrimTierName(String primTierName) {
+		this.primTierName = primTierName;
+	}
+
+	public String getPrimTierName() {
+		return primTierName;
+	}
+	
 
 	public ElanWrapper (String file){
 		TranscriptionImpl eaf = new TranscriptionImpl(file);
@@ -23,7 +32,7 @@ public class ElanWrapper {
 
 	public String getPrimaryText() {
 		StringBuffer primText = new StringBuffer();
-		TierImpl charTier = (TierImpl) elan.getTierWithId("tok");
+		TierImpl charTier = (TierImpl) elan.getTierWithId(this.getPrimTierName());
 		for (Object obj : charTier.getAnnotations()){
 			AbstractAnnotation charAnno = (AbstractAnnotation) obj;
 			primText.append(charAnno.getValue());
@@ -36,7 +45,7 @@ public class ElanWrapper {
 
 		String primtextchangeable = getPrimaryText();
 		
-		TierImpl tokTier = (TierImpl) elan.getTierWithId("tok");
+		TierImpl tokTier = (TierImpl) elan.getTierWithId(this.getPrimTierName());
 				
 		int offset = 0;
         for (Object obj : tokTier.getAnnotations()){

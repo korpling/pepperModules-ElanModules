@@ -1,4 +1,4 @@
-package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.playground.salt.elan2salt;
+package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.importer;
 
 public class ElanToken {
 	
