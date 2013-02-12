@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 
+import de.hu_berlin.german.korpling.saltnpepper.pepperModules_ElanModule.DDDPreparer.SaveEAF;
 import mpi.eudico.server.corpora.clom.Transcription;
 import mpi.eudico.server.corpora.clomimpl.abstr.AbstractAnnotation;
 import mpi.eudico.server.corpora.clomimpl.abstr.AlignableAnnotation;
@@ -32,7 +33,7 @@ public class DDDPreparer {
 	public static void main(String[] args) throws Exception {
 		
 		//get properties file
-		FileInputStream in = new FileInputStream("/home/tom/Dropbox/ElanModule/settings.txt");
+		FileInputStream in = new FileInputStream("/home/tom/DDDcorpora/heliand-settings.txt");
 		Properties prop = new Properties();
 		prop.load(new InputStreamReader(in, "UTF-8"));
 		
@@ -110,12 +111,14 @@ public class DDDPreparer {
 				// notify of - at the beginning or ending of annotations in referenztext w
 				if (tierName.equals("Referenztext W")){
 					if ( annoValue.trim().length() > 1 & (annoValue.startsWith("-") | annoValue.endsWith("-"))){
+						String newValue = annoValue.replaceAll("\\b-", "").replaceAll("-\\b", "");
+						anno.setValue(newValue);
 						log = log + ("WARNING: " + fin + ":" + 
 								tierName + ":" + 
 								Milliseconds2HumanReadable(beginTime) + ":" + 
 								Milliseconds2HumanReadable(endTime) + ":" + 
 								annoValue.trim() + 
-								" | contains a minus character at beginning or ending, this might be an error\n");
+								" | removed a minus character at beginning or ending, this might be an error\n");
 					}
 				}
 				
@@ -123,6 +126,7 @@ public class DDDPreparer {
 				if (tierName.equals("Referenztext B")){
 					if ( annoValue.trim().length() > 1 & (annoValue.startsWith("[") | annoValue.endsWith("]"))){
 						String newValue = annoValue.replace("[", "").replace("]", "");
+						anno.setValue(newValue);
 						log = log + ("CHANGE: " + fin + ":" + 
 								tierName + ":" + 
 								Milliseconds2HumanReadable(beginTime) + ":" + 

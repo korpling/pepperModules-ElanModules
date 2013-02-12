@@ -15,10 +15,11 @@
  *
  *
  */
-package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.playground.salt.saltSample;
+package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.playground.salt.elan2salt;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -70,7 +71,7 @@ public class Elan2Salt
 	 * 
 	 * 				rootCorpus
 	 * 	/		\				/		\
-	 * doc1		doc2		doc3		doc4
+	 * doc1		doc2		doc3		doc4 ...
 	 * @throws IOException 
 	 * @throws SAXException 
 	 */
@@ -79,7 +80,7 @@ public class Elan2Salt
 		SCorpusGraph sCorpGraph= SaltFactory.eINSTANCE.createSCorpusGraph();
 		saltProject.getSCorpusGraphs().add(sCorpGraph);
 		SCorpus sCorpus1= SaltFactory.eINSTANCE.createSCorpus();
-		sCorpus1.setSName("rootCorpus");
+		sCorpus1.setSName("Heliand");
 		sCorpGraph.addSNode(sCorpus1);
 		
 		SDocument sDoc= null;
@@ -96,6 +97,12 @@ public class Elan2Salt
 		return(sCorpGraph);
 	}
 	
+	/**
+	 * Creates a collection of strings which contain the actual filenames in a certain path
+	 * without the path.
+	 * 
+	 * @param String path, the path in which Elan files ending in eaf should be retrieved
+	 */
 	public static Collection<String> getFileNamesInDirectory(String path){
 		String files;
 		Collection<String> out = new Vector();	
@@ -113,11 +120,6 @@ public class Elan2Salt
 	}
 	
 	/**
-	 * The name of the morphologic layer containing the tokens. 
-	 */
-	public static String MORPHOLOGY_LAYER="morphology";
-	
-	/**
 	 * Creates a {@link STextualDS} object containing the primary text {@link Elan2Salt#PRIMARY_TEXT} and adds the object
 	 * to the {@link SDocumentGraph} being contained by the given {@link SDocument} object.
 	 * 
@@ -133,37 +135,24 @@ public class Elan2Salt
 			String filename = sDocument.getSMetaAnnotation("elan::origFile").getValueString();
 			ElanWrapper ew = new ElanWrapper(filename);
 			sTextualDS= SaltFactory.eINSTANCE.createSTextualDS();
+			// ew.getPrimaryText gets the text from the elan document as a string
 			sTextualDS.setSText(ew.getPrimaryText());
-			//sTextualDS.setSText("This is a sample text, which is very short.");
 			//adding the text to the document-graph
 			sDocument.getSDocumentGraph().addSNode(sTextualDS);
 		}//creating the primary text
 	}
 	
 	/**
-	 * Creates a set of {@link SToken} objects tokenizing the primary text {@link Elan2Salt#PRIMARY_TEXT} in to the 
-	 * following tokens:
-	 * <ul>
-	 *	<li>Is</li>
-	 *	<li>this</li>
-	 *	<li>example</li>
-	 * 	<li>more</li>
-	 * 	<li>complicated</li>
-	 *	<li>than</li>
-	 * 	<li>it</li>
-	 * 	<li>appears</li>
-	 * 	<li>to</li>
-	 * 	<li>be</li>
-	 * 	<li>?</li>
-	 * </ul>
+	 * Creates a set of {@link SToken} objects tokenizing the primary text
 	 * The created {@link SToken} objects and corresponding {@link STextualRelation} objects are added to the given {@link SDocument} object.
 	 * @param sDocument the document, to which the created {@link SToken} objects will be added
 	 */
 	public static void createTokens(SDocument sDocument){
+		// tricky, here only the first textualds is taken?
 		STextualDS sTextualDS = sDocument.getSDocumentGraph().getSTextualDSs().get(0);
-		//as a means to group elements, layers (SLayer) can be used. here, a layer
-		//named "morphology" is created and the tokens will be added to it
+		// as a means to group elements, layers (SLayer) can be used.
 		SLayer annoLayer = SaltFactory.eINSTANCE.createSLayer();
+		// TODO: parameterize
 		annoLayer.setSName("annotations");
 		sDocument.getSDocumentGraph().addSLayer(annoLayer);
 		
@@ -175,7 +164,15 @@ public class Elan2Salt
 			createToken(et.getBeginChar(), et.getEndChar(), sTextualDS, sDocument, "annotations");
 		}
 	}
-	
+
+	/**
+	 * Creates an individual salt token, connects it to the document with a textual relation
+	 * @param start character position where the token starts
+	 * @param end character position where the token ends
+	 * @param sTextualDS primary text for which start and end are valid
+	 * @param sDocument the salt document
+	 * @param layerName the layer in which the token is put
+	 */
 	public static void createToken(int start, int end, STextualDS sTextualDS, SDocument sDocument, String layerName){
 		SToken sToken= SaltFactory.eINSTANCE.createSToken();
 		sDocument.getSDocumentGraph().addSNode(sToken);
@@ -189,6 +186,11 @@ public class Elan2Salt
 		sDocument.getSDocumentGraph().addSRelation(sTextRel);
 	}
 	
+	/**
+	 * Creates an annotation for a single token
+	 * @param sDocument
+	 * @param curTier elan tier name from which the annotation should be grabbed
+	 */
 	public static void createMorphologyAnnotation(SDocument sDocument, String curTier){
 		List<STextualRelation> sTextRels= Collections.synchronizedList(sDocument.getSDocumentGraph().getSTextualRelations());
 		
@@ -219,19 +221,6 @@ public class Elan2Salt
 	/**
 	 * Creates morphological annotations (pos and lemma) for the tokenized sample and adds them to each {@link SToken} object as
 	 * {@link SPOSAnnotation} or {@link SLemmaAnnotation} object.
-	 * <table>
-	 * 	<tr><td>token</td><td>pos</td><td>lemma</td></tr>
-	 * 	<tr><td>Is</td><td>VBZ</td><td>be</td></tr>
-	 * 	<tr><td>this</td><td>DT</td><td>this</td></tr>
-	 * 	<tr><td>example</td><td>NN</td><td>example</td></tr>
-	 * 	<tr><td>more</td><td>ABR</td><td>more</td></tr>
-	 * 	<tr><td>complicated</td><td>JJ</td><td>complicated</td></tr>
-	 * 	<tr><td>than</td><td>IN</td><td>than</td></tr>
-	 * 	<tr><td>it</td><td>PRP</td><td>it</td></tr>
-	 * 	<tr><td>appears</td><td>VBZ</td><td>appear</td></tr>
-	 * 	<tr><td>to</td><td>TO</td><td>to</td></tr>
-	 * 	<tr><td>be</td><td>VB</td><td>be</td></tr>
-	 * </table>
 	 * @param sDocument the document containing the {@link SToken} and {@link STextualDS} objects
 	 */
 	public static void createMorphologyAnnotations(SDocument sDocument){
@@ -278,6 +267,12 @@ public class Elan2Salt
 		}
 	}
 
+	/**
+	 * gets the textual relation that glues together a salt document and the salt token that is taking place for the elan token
+	 * @param sDocument relevant document
+	 * @param et Elan token that we want to find in the document
+	 * @return
+	 */
 	public static STextualRelation getSTextualRelation(SDocument sDocument, ElanToken et){
 		STextualRelation out = null;
 		List<STextualRelation> sTextRels = Collections.synchronizedList(sDocument.getSDocumentGraph().getSTextualRelations());
@@ -317,252 +312,141 @@ public class Elan2Salt
 	}
 	
 	/**
-	 * 
-	 * @param sDocument
+	 * function to traverse an elan document (going through tiers, then going through the annotations in the tiers)
+	 * the retrieved annotations are mapped to salt, either by adding them to an existing salt token or salt span
+	 * or by creating a new salt token or span.
+	 * @param sDocument from the meta annotation in the salt document, the actual elan file is retrieved.
 	 */
-	public static void createSyntaxStructure(SDocument sDocument){
-		List<SToken> sTokens= Collections.synchronizedList(sDocument.getSDocumentGraph().getSTokens());
-		
-		// creating variables for the eInstance of the SaltFactory and for the SDocumentGraph 
-		// (this is just for convenience)
-		SaltFactory sf = SaltFactory.eINSTANCE;
-		SDocumentGraph docGraph = sDocument.getSDocumentGraph();
-		
-		// creating the constituent nodes of the syntax tree
-		// these nodes are of the type SStructure
-		SStructure sq    = sf.createSStructure();
-		SStructure np1   = sf.createSStructure();
-		SStructure adjp1 = sf.createSStructure();
-		SStructure adjp2 = sf.createSStructure();
-		SStructure sbar  = sf.createSStructure();
-		SStructure s1    = sf.createSStructure();
-		SStructure np2   = sf.createSStructure();
-		SStructure vp1   = sf.createSStructure();
-		SStructure s2    = sf.createSStructure();
-		SStructure vp2   = sf.createSStructure();
-		SStructure vp3   = sf.createSStructure();
-		
-		// there are two methods named "addSNode" for a SDocumentGraph
-		// the first one simply adds the single parameter of the type SNode to the SDocumentGraph
-		// the second one requires three arguments: two SNodes and a STYPE_NAME
-		// this method will create a SRelation between the two SNodes. The type of the SRelation is determined by
-		// the STYPE_NAME, but only four STYPE_NAMEs are allowed: SDOMINANCE_RELATION, SPOINTING_RELATION,
-		// SSPANNING_RELATION and STEXTUAL_RELATION. For the hierarchical structure that is intended to build, SDOMINANCE_RELATION is used.
-		// the first SNode (the source of the relation) is required to be contained in the SDocumentGraph already, so when building such
-		// a tree, the root node has to be added to the SDocumentGraph before establishing the relations between the other nodes.
-			
-		// creating a variable for the type of relation between the constituents (dominance relation)
-		// (this is just for convenience)
-		STYPE_NAME domRel = STYPE_NAME.SDOMINANCE_RELATION;
-
-		// adding the root SNode to the SDocumentGraph
-		docGraph.addSNode(sq);				
-		
-		// adding the target nodes to the SDocumentGraph and creating SDominanceRelations between the respective nodes
-		// (addSNode returns the created SDominanceRelation, but it it not used here)
-		docGraph.addSNode(sq,    sTokens.get(0),  domRel); // "Is"
-		docGraph.addSNode(sq,    np1,             domRel);
-		docGraph.addSNode(np1,   sTokens.get(1),  domRel); // "this"
-		docGraph.addSNode(np1,   sTokens.get(2),  domRel); // "example"
-		docGraph.addSNode(sq,    adjp1,           domRel);
-		docGraph.addSNode(adjp1, adjp2,           domRel);
-		docGraph.addSNode(adjp2, sTokens.get(3),  domRel); // "more"
-		docGraph.addSNode(adjp2, sTokens.get(4),  domRel); // "complicated"				
-		docGraph.addSNode(adjp1, sbar,            domRel);
-		docGraph.addSNode(sbar,  sTokens.get(5),  domRel); // "than"
-		docGraph.addSNode(sbar,  s1,              domRel);				
-		docGraph.addSNode(s1,    np2,             domRel);				
-		docGraph.addSNode(np2,   sTokens.get(6),  domRel); // "it"
-		docGraph.addSNode(s1,    vp1,             domRel);
-		docGraph.addSNode(vp1,   sTokens.get(7),  domRel); // "appears"				
-		docGraph.addSNode(vp1,   s2,              domRel);				
-		docGraph.addSNode(s2,    vp2,             domRel);
-		docGraph.addSNode(vp2,   sTokens.get(8),  domRel); // "to"				
-		docGraph.addSNode(vp2,   vp3,             domRel);
-		docGraph.addSNode(vp3,   sTokens.get(9),  domRel); // "be"
-			
-		// creating a layer named "syntax" for the constituents of the tree
-		SLayer syntaxLayer = SaltFactory.eINSTANCE.createSLayer();
-		syntaxLayer.setSName("syntax");
-		docGraph.addSLayer(syntaxLayer);
-
-		// adding the constituents to the syntax layer
-		syntaxLayer.getSNodes().add(sq);
-		syntaxLayer.getSNodes().add(np1);
-		syntaxLayer.getSNodes().add(adjp1);				
-		syntaxLayer.getSNodes().add(adjp2);
-		syntaxLayer.getSNodes().add(sbar);				
-		syntaxLayer.getSNodes().add(s1);
-		syntaxLayer.getSNodes().add(np2);				
-		syntaxLayer.getSNodes().add(vp1);
-		syntaxLayer.getSNodes().add(s2);				
-		syntaxLayer.getSNodes().add(vp2);
-		syntaxLayer.getSNodes().add(vp3);				
-	}
-	
-	/**
-	 * 
-	 * @param sDocument
-	 */
-	public static void createSyntaxAnnotations(SDocument sDocument){
-		List<SStructure> sStructures= Collections.synchronizedList(sDocument.getSDocumentGraph().getSStructures());
-		String [] annotations = {"SQ","NP","ADJP","ADJP","SBar","S","NP","VP","S","VP","VP"};
-		String annoNS   = null;     // no namespace used in this example
-		String annoName = "const";  // our name for a constituent
-		SAnnotation sAnno= null;
-		int i = 0;
-		for (SStructure sStructure : sStructures){
-			sAnno= SaltFactory.eINSTANCE.createSAnnotation();
-			sAnno.setNamespace(annoNS);
-			sAnno.setSName(annoName);
-			sAnno.setSValue(annotations[i]);
-			i++;
-			sStructure.addSAnnotation(sAnno);
-		}
-	
-	}
-	
-	/**
-	 * 
-	 * @param sDocument
-	 */
-	public static void createAnaphoricAnnotations(SDocument sDocument){
-		List<SToken> sTokens= Collections.synchronizedList(sDocument.getSDocumentGraph().getSTokens());
-		
-		//creating a span as placeholder, which contains the tokens for "this" and "example"
-		SSpan sSpan= SaltFactory.eINSTANCE.createSSpan();
-		//adding the created span to the document-graph
-		sDocument.getSDocumentGraph().addSNode(sSpan);
-		
-		//creating a relation between the span and the tokens
-		SSpanningRelation sSpanRel= null;
-		sSpanRel= SaltFactory.eINSTANCE.createSSpanningRelation();
-		sSpanRel.setSSpan(sSpan);
-		sSpanRel.setSToken(sTokens.get(1));
-		sDocument.getSDocumentGraph().addSRelation(sSpanRel);
-		sSpanRel= SaltFactory.eINSTANCE.createSSpanningRelation();
-		sSpanRel.setSSpan(sSpan);
-		sSpanRel.setSToken(sTokens.get(2));
-		sDocument.getSDocumentGraph().addSRelation(sSpanRel);
-		
-		//creating a pointing relations
-		SPointingRelation sPointingRelation= SaltFactory.eINSTANCE.createSPointingRelation();
-		//setting token "it" as source of this relation
-		sPointingRelation.setSStructuredSource(sTokens.get(6));
-		//setting span "this example" as target of this relation
-		sPointingRelation.setSStructuredTarget(sSpan);
-		//adding the created relation to the document-graph
-		sDocument.getSDocumentGraph().addSRelation(sPointingRelation);
-		//adding the type to the relation
-		sPointingRelation.addSType("anaphoric");
-		//creating an anaphoric relation with the use of pointing relations between the Tokens {"it"} and {"this", "example"}
-		
-	}
-	
 	public static void traverseElanDocument(SDocument sDocument){
 		String filename = sDocument.getSMetaAnnotation("elan::origFile").getValueString();
 		ElanWrapper ew = new ElanWrapper(filename);
 		ArrayList<String> tierNames = ew.getTierNames();
 		for (String tierName : tierNames){
+			System.out.println("working on " + filename + ", adding tier " + tierName);
 			for (ElanSpan es : ew.getElanSpans(tierName)){
-				if (es.size() == 1){
-					ElanToken et = es.getElanToken(0);
-					System.out.println("creating token for " + tierName+ " also known as " +es.getName()+" with value " + es.getValue());
-					setSaltToken(sDocument, et, es.getName(), es.getValue());
-				}
-				if (es.size() > 1){
+// dirty hack to make everything as a span, to solve issue with token annotations always being represented as kwic in annis
+// TODO change something in ANNIS so that				
+//				if (es.size() == 1){
+//					ElanToken et = es.getElanToken(0);
+//					setSaltToken(sDocument, et, es.getName(), es.getValue());
+//				}
+//				if (es.size() > 1){
 					setSaltSpan(sDocument, es, es.getName(), es.getValue());
-				}
+//				}
 			}
 		}
 	}
 	
+	/**
+	 * the elan span in the input is added (or created) to the salt document, with an annotation that consist of name and value 
+	 * @param sDocument the salt document in which this span should be added or created
+	 * @param es the elan span
+	 * @param name annotation name
+	 * @param value annotation value
+	 */
 	private static void setSaltSpan(SDocument sDocument, ElanSpan es, String name, String value) {
-		
-		SSpan sSpan= null;
-		SSpanningRelation sSpanRel= null;
-		SAnnotation sAnno = null;
-		sSpan= SaltFactory.eINSTANCE.createSSpan();
-		//sDocument.getSDocumentGraph().addSNode(sSpan);
-		for (int i= 0; i< es.size(); i++)
-		{
-			sSpanRel= SaltFactory.eINSTANCE.createSSpanningRelation();
-			sSpanRel.setSSpan(sSpan);
-			ElanToken et = es.getElanToken(i);
-			STextualRelation str = getSTextualRelation(sDocument, et);
-			SToken st = null;
-			if (str == null){
-				st = SaltFactory.eINSTANCE.createSToken();
-				sDocument.getSDocumentGraph().addSNode(st);
-				SLayer layer = sDocument.getSDocumentGraph().getSLayerByName("annotations").get(0);
-				layer.getSNodes().add(st);
-				STextualRelation sTextRel= SaltFactory.eINSTANCE.createSTextualRelation();
-				sTextRel.setSToken(st);
-				sTextRel.setSTextualDS(sDocument.getSDocumentGraph().getSTextualDSs().get(0));
-				sTextRel.setSStart(et.getBeginChar());
-				sTextRel.setSEnd(et.getEndChar());
-				sDocument.getSDocumentGraph().addSRelation(sTextRel);
-			}
-			if (str != null){
-				st = str.getSToken();
-			}
-			sSpanRel.setSToken(st);
-//			sDocument.getSDocumentGraph().addSRelation(sSpanRel);
-		}
-		
-		boolean find = false;
-		for (SSpan sp : sDocument.getSDocumentGraph().getSSpans()){
-			if (sSpan.equals(sp)){
-				sSpan = sp;
-				find = true;
-				break;
+		// dirty hack to check for weird symbols in the value that we do not want.
+		if (value.trim().length() != 0){
+			if (String.format("%040x", new BigInteger(value.getBytes())).startsWith("-")){
+				value = "";
 			}
 		}
-		
-		if (find == true){
-			System.out.println("span was available, adding annotation");
-			sAnno= SaltFactory.eINSTANCE.createSAnnotation();
-			//setting the name of the annotation
-			sAnno.setSName(name);
-			//setting the value of the annotation
-			sAnno.setSValue(value);
-			//adding the annotation to the placeholder span
-			sSpan.addSAnnotation(sAnno);
-		}
-		
-		if (find == false){
-			System.out.println("span was not available, creating new one");
-			sSpan= null;
-			sSpanRel= null;
+		if (value.trim().length() != 0){
+			SSpan sSpan= null;
+			SSpanningRelation sSpanRel= null;
+			SAnnotation sAnno = null;
 			sSpan= SaltFactory.eINSTANCE.createSSpan();
-			sDocument.getSDocumentGraph().addSNode(sSpan);
+			//sDocument.getSDocumentGraph().addSNode(sSpan);
 			for (int i= 0; i< es.size(); i++)
 			{
 				sSpanRel= SaltFactory.eINSTANCE.createSSpanningRelation();
 				sSpanRel.setSSpan(sSpan);
 				ElanToken et = es.getElanToken(i);
-				SToken st = getSTextualRelation(sDocument, et).getSToken();
+				STextualRelation str = getSTextualRelation(sDocument, et);
+				SToken st = null;
+				if (str == null){
+					st = SaltFactory.eINSTANCE.createSToken();
+					sDocument.getSDocumentGraph().addSNode(st);
+					if (sDocument.getSDocumentGraph().getSLayerByName("annotations").size() == 0){
+						SLayer annoLayer = SaltFactory.eINSTANCE.createSLayer();
+						annoLayer.setSName("annotations");
+						sDocument.getSDocumentGraph().addSLayer(annoLayer);
+					}
+					SLayer layer = sDocument.getSDocumentGraph().getSLayerByName("annotations").get(0);
+					layer.getSNodes().add(st);
+					STextualRelation sTextRel= SaltFactory.eINSTANCE.createSTextualRelation();
+					sTextRel.setSToken(st);
+					sTextRel.setSTextualDS(sDocument.getSDocumentGraph().getSTextualDSs().get(0));
+					sTextRel.setSStart(et.getBeginChar());
+					sTextRel.setSEnd(et.getEndChar());
+					sDocument.getSDocumentGraph().addSRelation(sTextRel);
+				}
+				if (str != null){
+					st = str.getSToken();
+				}
 				sSpanRel.setSToken(st);
-				sDocument.getSDocumentGraph().addSRelation(sSpanRel);
+	//			sDocument.getSDocumentGraph().addSRelation(sSpanRel);
 			}
 			
-			sAnno= SaltFactory.eINSTANCE.createSAnnotation();
-			//setting the name of the annotation
-			sAnno.setSName(name);
-			//setting the value of the annotation
-			sAnno.setSValue(value);
-			//adding the annotation to the placeholder span
-			sSpan.addSAnnotation(sAnno);
+			// TODO this does not seem to work
+			boolean find = false;
+			for (SSpan sp : sDocument.getSDocumentGraph().getSSpans()){
+				if (sSpan.equals(sp)){
+					sSpan = sp;
+					find = true;
+					break;
+				}
+			}
+			
+			if (find == true){
+				sAnno= SaltFactory.eINSTANCE.createSAnnotation();
+				//setting the name of the annotation
+				sAnno.setSName(name);
+				//setting the value of the annotation
+				sAnno.setSValue(value.trim());
+				//adding the annotation to the placeholder span
+				sSpan.addSAnnotation(sAnno);
+			}
+			
+			if (find == false){
+				sSpan= null;
+				sSpanRel= null;
+				sSpan= SaltFactory.eINSTANCE.createSSpan();
+				sDocument.getSDocumentGraph().addSNode(sSpan);
+				for (int i= 0; i< es.size(); i++)
+				{
+					sSpanRel= SaltFactory.eINSTANCE.createSSpanningRelation();
+					sSpanRel.setSSpan(sSpan);
+					ElanToken et = es.getElanToken(i);
+					SToken st = getSTextualRelation(sDocument, et).getSToken();
+					sSpanRel.setSToken(st);
+					sDocument.getSDocumentGraph().addSRelation(sSpanRel);
+				}
+				
+				sAnno= SaltFactory.eINSTANCE.createSAnnotation();
+				//setting the name of the annotation
+				sAnno.setSName(name);
+				//setting the value of the annotation
+				sAnno.setSValue(value.trim());
+				//adding the annotation to the placeholder span
+				sSpan.addSAnnotation(sAnno);
+			}
 		}
 	}
 
+	/**
+	 * the elan token in the input is added (or created) to the salt document, with an annotation that consists of the tier name and the value
+	 * @param sDocument salt document to which this token is added
+	 * @param et the elan token
+	 * @param curTierName the name of the annotation to be added
+	 * @param curValue the value of the annotation to be added
+	 */
 	private static void setSaltToken(SDocument sDocument, ElanToken et, String curTierName, String curValue) {
 		STextualRelation curTextRel = getSTextualRelation(sDocument, et);
 		String filename = sDocument.getSMetaAnnotation("elan::origFile").getValueString();
 		ElanWrapper ew = new ElanWrapper(filename);
 		SAnnotation sAnno = null;
 		if (curTextRel != null){
-			System.out.println("token already available");
 			sAnno = SaltFactory.eINSTANCE.createSAnnotation();
 			sAnno.setSName(curTierName);
 			int startChar = curTextRel.getSStart();
@@ -574,11 +458,11 @@ public class Elan2Salt
 			}
 			if (value != null){
 				sAnno.setSValue(value.trim());
+				sAnno.setSNS("elan");
 				curTextRel.getSToken().addSAnnotation(sAnno);
 			}
 		}
 		if (curTextRel == null){
-			System.out.println("creating token");
 			STextualDS sTextualDS = sDocument.getSDocumentGraph().getSTextualDSs().get(0);
 			//as a means to group elements, layers (SLayer) can be used. here, a layer
 			//named "morphology" is created and the tokens will be added to it
@@ -600,6 +484,7 @@ public class Elan2Salt
 			sAnno = SaltFactory.eINSTANCE.createSAnnotation();
 			sAnno.setSName(curTierName);
 			sAnno.setSValue(curValue.trim());
+			sAnno.setSNS("elan");
 			sTextRel.getSToken().addSAnnotation(sAnno);
 		}
 	}
@@ -615,24 +500,9 @@ public class Elan2Salt
 		sDocument.setSDocumentGraph(SaltFactory.eINSTANCE.createSDocumentGraph());
 		// create the primary text - DONE
 		createPrimaryData(sDocument);
-		
+		// goes through the elan document, and makes all the elan tiers into salt tiers
+		// TODO add an option to ignore certain elan tiers
 		traverseElanDocument(sDocument);
-		
-		// create tokenization - DONE
-//		createTokens(sDocument);
-		// create token Annotations DONE
-//		createMorphologyAnnotations(sDocument);
-		// create spans
-//		createInformationStructureSpan(sDocument);
-		// create span annotations
-//		createInformationStructureAnnotations(sDocument);
-		// create Structures
-//		createSyntaxStructure(sDocument);
-		// create Structure annotations
-//		createSyntaxAnnotations(sDocument);
-		// create pointing relations
-//		createAnaphoricAnnotations(sDocument);
-		
 	}
 	
 	public static String tmpPathName= "./_tmp/";

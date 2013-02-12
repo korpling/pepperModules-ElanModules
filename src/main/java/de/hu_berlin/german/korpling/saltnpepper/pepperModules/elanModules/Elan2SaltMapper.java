@@ -1,42 +1,9 @@
 package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules;
 
-import java.io.File;
-import java.util.Hashtable;
-import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.eclipse.emf.common.util.BasicEList;
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
-import org.osgi.service.log.LogService;
 
-import de.hu_berlin.german.korpling.saltnpepper.salt.SaltFactory;
+import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpus;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SDocument;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SAudioDSRelation;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SAudioDataSource;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SDataSourceSequence;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SSpan;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SSpanningRelation;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SStructuredNode;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STextualDS;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STextualRelation;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STimeline;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STimelineRelation;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SToken;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SAnnotation;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SLayer;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SMetaAnnotatableElement;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SMetaAnnotation;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SNode;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltSemantics.SWordAnnotation;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltSemantics.SaltSemanticsFactory;
-
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * This class maps data coming from the ELAN model to a Salt model.
@@ -45,5 +12,46 @@ import java.util.Set;
  */
 public class Elan2SaltMapper 
 {
+	//TODO remove when inheriting from PepperMapper
+	protected SDocument sDocument= null;
+	//TODO remove when inheriting from PepperMapper
+	public SDocument getSDocument() {
+		return(sDocument);
+	}
+	//TODO remove when inheriting from PepperMapper
+	public void setSDocument(SDocument sDocument) {
+		this.sDocument= sDocument;
+	}
+	//TODO remove when inheriting from PepperMapper
+	protected SCorpus sCorpus= null;
+	//TODO remove when inheriting from PepperMapper
+	public SCorpus getSCorpus() {
+		return(sCorpus);
+	}
+	//TODO remove when inheriting from PepperMapper
+	public void setSCorpus(SCorpus sCorpus) {
+		this.sCorpus= sCorpus;
+	}
+	//TODO remove when inheriting from PepperMapper
+	protected URI resourceURI= null;
+	//TODO remove when inheriting from PepperMapper
+	public URI getResourceURI() {
+		return(resourceURI);
+	}
+	//TODO remove when inheriting from PepperMapper
+	public void setResourceURI(URI resourceURI) {
+		this.resourceURI= resourceURI;
+	}
 	
+	//TODO set @override
+	public void mapSCorpus()
+	{
+		
+	}
+	
+	//TODO set @override
+	public void mapSDocument()
+	{
+		
+	}
 }
