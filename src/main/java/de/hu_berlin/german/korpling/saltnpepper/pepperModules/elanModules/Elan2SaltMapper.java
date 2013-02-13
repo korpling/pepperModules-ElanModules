@@ -127,11 +127,12 @@ public class Elan2SaltMapper
 			throw new ELANImporterException("Cannot create example, because the given sDocument does not contain an SDocumentGraph.");
 		STextualDS sTextualDS = null;
 		{//creating the primary text
+			// TODO properties
 			TierImpl primtexttier = (TierImpl) elan.getTierWithId("tok");
 			StringBuffer primText = new StringBuffer();
 			for (Object obj : primtexttier.getAnnotations()){
 				AbstractAnnotation charAnno = (AbstractAnnotation) obj;
-				primText.append(charAnno.getValue());
+				primText.append(charAnno.getValue().trim());
 			}
 			sTextualDS= SaltFactory.eINSTANCE.createSTextualDS();
 			// ew.getPrimaryText gets the text from the elan document as a string
@@ -154,29 +155,97 @@ public class Elan2SaltMapper
 		maintiers.add("character");
 		maintiers.add("txt");
 		createSTokensForMainTiers(maintiers);
-		addAnnotationsToTokens();
+		addAnnotations();
 	}
 	
-	public void addAnnotationsToTokens(){
+	public void addAnnotations(){
+		// fetch the primary text
 		STextualDS sTextualDS = this.getSDocument().getSDocumentGraph().getSTextualDSs().get(0);
+		
+		// go through the tiers in elan
 		for (Object obj : this.getElanModel().getTiers()){
 			TierImpl tier = (TierImpl) obj;
+			System.out.println(tier.getName());
+			// and go through the individual annotations
 			for (Object annoObj : tier.getAnnotations()){
 				Annotation anno = (Annotation) annoObj;
-				String value = anno.getValue();
-				if (!value.trim().isEmpty()){
-					long beginTime = anno.getBeginTimeBoundary();
-					long endTime = anno.getEndTimeBoundary();
-					int beginChar = time2char.get(beginTime);
-					int endChar = time2char.get(endTime);
-			        SDataSourceSequence sequence= SaltFactory.eINSTANCE.createSDataSourceSequence();
-			        sequence.setSSequentialDS(sTextualDS);
-			        sequence.setSStart((int) beginChar);
-			        sequence.setSEnd((int) endChar);
-			        EList<SToken> sTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
-			        SToken sToken = sTokens.get(0);
-			        sToken.createSAnnotation("elan", tier.getName(), value.trim());
-				}
+				String value = anno.getValue().trim();
+				long beginTime = anno.getBeginTimeBoundary();
+				long endTime = anno.getEndTimeBoundary();
+				// if there is something interesting in the value, grab everything you can get about this anno
+				if (!value.isEmpty()){
+					try{
+						int beginChar = time2char.get(beginTime);
+						int endChar = time2char.get(endTime);
+						// create a sequence that we can use to search for a related token
+				        SDataSourceSequence sequence= SaltFactory.eINSTANCE.createSDataSourceSequence();
+				        sequence.setSSequentialDS(sTextualDS);
+				        sequence.setSStart((int) beginChar);
+				        sequence.setSEnd((int) endChar);
+				        
+				        // use this sequence to find the related tokens
+				        EList<SToken> sTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
+				        
+				        // initialize the wanted token
+				        SToken sToken = null;
+				        // go through the retrieved tokens, and only keep the one whose beginning and ending are exact matches
+				        for (SToken st : sTokens){
+				        	// weird salt way of getting the textrel of an stoken
+				        	EList<STYPE_NAME> relTypes= new BasicEList<STYPE_NAME>();
+				            relTypes.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
+				            EList<SDataSourceSequence> sTextRels = sDocument.getSDocumentGraph().getOverlappedDSSequences(st, relTypes);
+				            // but here you can grab the send and sstart (assuming there is one hit)
+				            int sStart = sTextRels.get(0).getSStart();
+				            int sStop = sTextRels.get(0).getSEnd();
+				            // do the test
+				            if (sStart == beginChar & sStop == endChar){
+				            	sToken = st;
+				            	break;
+				            }
+				        }
+	
+				        // if we found a matching SToken, then add the annotation
+				        if (sToken != null){
+				        	sToken.createSAnnotation("elan", tier.getName(), value.trim());	
+				        }
+				        
+				        // if we did not find a matching SToken, then it is perhaps a span?
+				        if (sToken == null){
+				        	// Let's see if there are already some spans in the sDocument that fit the bill
+					        EList<SSpan> sSpans = this.getSDocument().getSDocumentGraph().getSSpanBySequence(sequence);
+					        // initialize the wanted token
+					        SSpan sSpan = null;
+					        // go through the retrieved spans, and only keep the one whose beginning and ending are exact matches
+					        for (SSpan sp : sSpans){
+					        	// weird salt way of getting the spanning relation of an sspan
+					        	// TODO make this a function
+					        	EList<STYPE_NAME> relTypes= new BasicEList<STYPE_NAME>();
+					            relTypes.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
+					            EList<SDataSourceSequence> sSpanRels = sDocument.getSDocumentGraph().getOverlappedDSSequences(sp, relTypes);
+					            // but here you can grab the send and sstart!
+					            int sStart = sSpanRels.get(0).getSStart();
+					            int sStop = sSpanRels.get(0).getSEnd();
+					            // do the test
+					            if (sStart == beginChar & sStop == endChar){
+					            	sSpan = sp;
+					            	break;
+					            }
+					        }
+					        if (sSpan != null){
+					        	sSpan.createSAnnotation("elan", tier.getName(), value);	
+					        }
+					        // ok, last chance, perhaps there was no span yet, so we have to create one
+					        if (sSpan == null){
+						        EList<SToken> sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
+						        // TODO test if the beginning and end of the sNewTokens fits the elan annotation begin and ending
+						        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
+						        newSpan.createSAnnotation("elan", tier.getName(), value);
+					        }
+				        }
+					}catch (NullPointerException noppes){
+						throw new ELANImporterException("This token could not be annotated: " + tier.getName() + ", " + value + ", " + beginTime);
+					}
+				} 
 			}
 		}
 	}
@@ -193,8 +262,8 @@ public class Elan2SaltMapper
 				for (Object annoObj : tier.getAnnotations()){
 					Annotation anno = (Annotation) annoObj;
 					String name = tier.getName();
-					String value = anno.getValue();
-					if (!value.trim().isEmpty()){						
+					String value = anno.getValue().trim();
+					if (!value.isEmpty()){						
 						long beginTime = anno.getBeginTimeBoundary();
 						long endTime = anno.getEndTimeBoundary();
 						int start =  primtextchangeable.indexOf(value);
