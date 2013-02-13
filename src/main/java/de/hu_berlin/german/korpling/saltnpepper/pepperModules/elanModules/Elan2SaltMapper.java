@@ -3,7 +3,14 @@ package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import mpi.eudico.server.corpora.clom.Annotation;
+import mpi.eudico.server.corpora.clomimpl.abstr.AbstractAnnotation;
+import mpi.eudico.server.corpora.clomimpl.abstr.TierImpl;
+import mpi.eudico.server.corpora.clomimpl.abstr.TranscriptionImpl;
 
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
@@ -62,6 +69,12 @@ public class Elan2SaltMapper
 	public URI getResourceURI() {
 		return(resourceURI);
 	}
+	
+	protected TranscriptionImpl elan = null;
+	public TranscriptionImpl getElanModel(){
+		return elan;
+	}
+	
 	//TODO remove when inheriting from PepperMapper
 	public void setResourceURI(URI resourceURI) {
 		this.resourceURI= resourceURI;
@@ -86,7 +99,15 @@ public class Elan2SaltMapper
 	//TODO set @override
 	public void mapSDocument()
 	{
-		// create the primary text - DONE
+		// set the elan document
+		String fname = sDocument.getSMetaAnnotation("elan::origFile").getValueString();
+		System.out.println("filename: " +fname);
+		this.elan = new TranscriptionImpl(fname);
+		// create the requested layers
+		SLayer morphLayer = SaltFactory.eINSTANCE.createSLayer();
+		morphLayer.setSName("annotations");
+		sDocument.getSDocumentGraph().addSLayer(morphLayer);
+		// create the primary text
 		createPrimaryData(sDocument);
 		// goes through the elan document, and makes all the elan tiers into salt tiers
 		// TODO add an option to ignore certain elan tiers
@@ -99,39 +120,26 @@ public class Elan2SaltMapper
 	 * 
 	 * @param sDocument the document, to which the created {@link STextualDS} object will be added
 	 */
-	public static void createPrimaryData(SDocument sDocument){
+	public void createPrimaryData(SDocument sDocument){
 		if (sDocument== null)
 			throw new ELANImporterException("Cannot create example, because the given sDocument is empty.");
 		if (sDocument.getSDocumentGraph()== null)
 			throw new ELANImporterException("Cannot create example, because the given sDocument does not contain an SDocumentGraph.");
 		STextualDS sTextualDS = null;
 		{//creating the primary text
-			String filename = sDocument.getSMetaAnnotation("elan::origFile").getValueString();
-			ElanWrapper ew = new ElanWrapper(filename);
+			TierImpl primtexttier = (TierImpl) elan.getTierWithId("tok");
+			StringBuffer primText = new StringBuffer();
+			for (Object obj : primtexttier.getAnnotations()){
+				AbstractAnnotation charAnno = (AbstractAnnotation) obj;
+				primText.append(charAnno.getValue());
+			}
 			sTextualDS= SaltFactory.eINSTANCE.createSTextualDS();
 			// ew.getPrimaryText gets the text from the elan document as a string
-			sTextualDS.setSText(ew.getPrimaryText());
+			System.out.println(primText.toString());
+			sTextualDS.setSText(primText.toString());
 			//adding the text to the document-graph
 			sDocument.getSDocumentGraph().addSNode(sTextualDS);
 		}//creating the primary text
-	}
-
-	/**
-	 * gets the textual relation that glues together a salt document and the salt token that is taking place for the elan token
-	 * @param sDocument relevant document
-	 * @param et Elan token that we want to find in the document
-	 * @return
-	 */
-	public static STextualRelation getSTextualRelation(SDocument sDocument, ElanToken et){
-		STextualRelation out = null;
-		List<STextualRelation> sTextRels = Collections.synchronizedList(sDocument.getSDocumentGraph().getSTextualRelations());
-		for (STextualRelation st : sTextRels){
-			if (st.getSStart() == et.getBeginChar() & st.getSEnd() == et.getEndChar()){
-				out = st;
-				break;
-			}
-		}
-		return out;
 	}
 	
 	/**
@@ -140,175 +148,76 @@ public class Elan2SaltMapper
 	 * or by creating a new salt token or span.
 	 * @param sDocument from the meta annotation in the salt document, the actual elan file is retrieved.
 	 */
-	public static void traverseElanDocument(SDocument sDocument){
-		String filename = sDocument.getSMetaAnnotation("elan::origFile").getValueString();
-		ElanWrapper ew = new ElanWrapper(filename);
-		ArrayList<String> tierNames = ew.getTierNames();
-		for (String tierName : tierNames){
-			System.out.println("working on " + filename + ", adding tier " + tierName);
-			for (ElanSpan es : ew.getElanSpans(tierName)){
-// dirty hack to make everything as a span, to solve issue with token annotations always being represented as kwic in annis
-// TODO change something in ANNIS so that				
-//				if (es.size() == 1){
-//					ElanToken et = es.getElanToken(0);
-//					setSaltToken(sDocument, et, es.getName(), es.getValue());
-//				}
-//				if (es.size() > 1){
-					setSaltSpan(sDocument, es, es.getName(), es.getValue());
-//				}
+	public void traverseElanDocument(SDocument sDocument){
+		ArrayList<String> maintiers = new ArrayList<String>();
+		maintiers.add("tok");
+		maintiers.add("character");
+		maintiers.add("txt");
+		createSTokensForMainTiers(maintiers);
+		addAnnotationsToTokens();
+	}
+	
+	public void addAnnotationsToTokens(){
+		STextualDS sTextualDS = this.getSDocument().getSDocumentGraph().getSTextualDSs().get(0);
+		for (Object obj : this.getElanModel().getTiers()){
+			TierImpl tier = (TierImpl) obj;
+			for (Object annoObj : tier.getAnnotations()){
+				Annotation anno = (Annotation) annoObj;
+				String value = anno.getValue();
+				if (!value.trim().isEmpty()){
+					long beginTime = anno.getBeginTimeBoundary();
+					long endTime = anno.getEndTimeBoundary();
+					int beginChar = time2char.get(beginTime);
+					int endChar = time2char.get(endTime);
+			        SDataSourceSequence sequence= SaltFactory.eINSTANCE.createSDataSourceSequence();
+			        sequence.setSSequentialDS(sTextualDS);
+			        sequence.setSStart((int) beginChar);
+			        sequence.setSEnd((int) endChar);
+			        EList<SToken> sTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
+			        SToken sToken = sTokens.get(0);
+			        sToken.createSAnnotation("elan", tier.getName(), value.trim());
+				}
 			}
 		}
 	}
 	
-	/**
-	 * the elan span in the input is added (or created) to the salt document, with an annotation that consist of name and value 
-	 * @param sDocument the salt document in which this span should be added or created
-	 * @param es the elan span
-	 * @param name annotation name
-	 * @param value annotation value
-	 */
-	private static void setSaltSpan(SDocument sDocument, ElanSpan es, String name, String value) {
-		// dirty hack to check for weird symbols in the value that we do not want.
-		if (value.trim().length() != 0){
-			if (String.format("%040x", new BigInteger(value.getBytes())).startsWith("-")){
-				value = "";
-			}
-		}
-		if (value.trim().length() != 0){
-			SSpan sSpan= null;
-			SSpanningRelation sSpanRel= null;
-			SAnnotation sAnno = null;
-			sSpan= SaltFactory.eINSTANCE.createSSpan();
-			//sDocument.getSDocumentGraph().addSNode(sSpan);
-			for (int i= 0; i< es.size(); i++)
-			{
-				sSpanRel= SaltFactory.eINSTANCE.createSSpanningRelation();
-				sSpanRel.setSSpan(sSpan);
-				ElanToken et = es.getElanToken(i);
-				STextualRelation str = getSTextualRelation(sDocument, et);
-				SToken st = null;
-				if (str == null){
-					st = SaltFactory.eINSTANCE.createSToken();
-					sDocument.getSDocumentGraph().addSNode(st);
-					if (sDocument.getSDocumentGraph().getSLayerByName("annotations").size() == 0){
-						SLayer annoLayer = SaltFactory.eINSTANCE.createSLayer();
-						annoLayer.setSName("annotations");
-						sDocument.getSDocumentGraph().addSLayer(annoLayer);
+	protected Map<Long,Integer> time2char = new HashMap();
+	
+	public void createSTokensForMainTiers(ArrayList<String> maintiers){
+		for (Object obj : this.getElanModel().getTiers()){
+			TierImpl tier = (TierImpl) obj;
+			STextualDS primaryText = sDocument.getSDocumentGraph().getSTextualDSs().get(0);
+			String primtextchangeable = primaryText.getSText();
+			int offset = 0;
+			if (maintiers.contains(tier.getName())){
+				for (Object annoObj : tier.getAnnotations()){
+					Annotation anno = (Annotation) annoObj;
+					String name = tier.getName();
+					String value = anno.getValue();
+					if (!value.trim().isEmpty()){						
+						long beginTime = anno.getBeginTimeBoundary();
+						long endTime = anno.getEndTimeBoundary();
+						int start =  primtextchangeable.indexOf(value);
+						if (start < 0 | start > 1){
+							throw new ELANImporterException("token was not found in primarytext: (" + value + ") (primtext:" + primtextchangeable + ")");
+						}
+			        	int stop = start + value.length();
+			        	int corstart = offset + start;
+			        	int corstop = offset + stop;
+			        	if (!time2char.containsKey(beginTime)){
+			        		time2char.put(beginTime, corstart);
+			        	}
+			        	if (!time2char.containsKey(endTime)){
+			        		time2char.put(endTime, corstop);
+			        	}
+			        	offset = offset + stop;
+			        	primtextchangeable = primtextchangeable.substring(stop);
+						SToken sToken = sDocument.getSDocumentGraph().createSToken(primaryText, corstart, corstop);
+						SLayer curSLayer = sDocument.getSDocumentGraph().getSLayerByName("annotations").get(0);
+						curSLayer.getSNodes().add(sToken);
 					}
-					SLayer layer = sDocument.getSDocumentGraph().getSLayerByName("annotations").get(0);
-					layer.getSNodes().add(st);
-					STextualRelation sTextRel= SaltFactory.eINSTANCE.createSTextualRelation();
-					sTextRel.setSToken(st);
-					sTextRel.setSTextualDS(sDocument.getSDocumentGraph().getSTextualDSs().get(0));
-					sTextRel.setSStart(et.getBeginChar());
-					sTextRel.setSEnd(et.getEndChar());
-					sDocument.getSDocumentGraph().addSRelation(sTextRel);
-				}
-				if (str != null){
-					st = str.getSToken();
-				}
-				sSpanRel.setSToken(st);
-	//			sDocument.getSDocumentGraph().addSRelation(sSpanRel);
-			}
-			
-			// TODO this does not seem to work
-			boolean find = false;
-			for (SSpan sp : sDocument.getSDocumentGraph().getSSpans()){
-				if (sSpan.equals(sp)){
-					sSpan = sp;
-					find = true;
-					break;
 				}
 			}
-			
-			if (find == true){
-				sAnno= SaltFactory.eINSTANCE.createSAnnotation();
-				//setting the name of the annotation
-				sAnno.setSName(name);
-				//setting the value of the annotation
-				sAnno.setSValue(value.trim());
-				//adding the annotation to the placeholder span
-				sSpan.addSAnnotation(sAnno);
-			}
-			
-			if (find == false){
-				sSpan= null;
-				sSpanRel= null;
-				sSpan= SaltFactory.eINSTANCE.createSSpan();
-				sDocument.getSDocumentGraph().addSNode(sSpan);
-				for (int i= 0; i< es.size(); i++)
-				{
-					sSpanRel= SaltFactory.eINSTANCE.createSSpanningRelation();
-					sSpanRel.setSSpan(sSpan);
-					ElanToken et = es.getElanToken(i);
-					SToken st = getSTextualRelation(sDocument, et).getSToken();
-					sSpanRel.setSToken(st);
-					sDocument.getSDocumentGraph().addSRelation(sSpanRel);
-				}
-				
-				sAnno= SaltFactory.eINSTANCE.createSAnnotation();
-				//setting the name of the annotation
-				sAnno.setSName(name);
-				//setting the value of the annotation
-				sAnno.setSValue(value.trim());
-				//adding the annotation to the placeholder span
-				sSpan.addSAnnotation(sAnno);
-			}
-		}
-	}
-
-	/**
-	 * the elan token in the input is added (or created) to the salt document, with an annotation that consists of the tier name and the value
-	 * @param sDocument salt document to which this token is added
-	 * @param et the elan token
-	 * @param curTierName the name of the annotation to be added
-	 * @param curValue the value of the annotation to be added
-	 */
-	private static void setSaltToken(SDocument sDocument, ElanToken et, String curTierName, String curValue) {
-		STextualRelation curTextRel = getSTextualRelation(sDocument, et);
-		String filename = sDocument.getSMetaAnnotation("elan::origFile").getValueString();
-		ElanWrapper ew = new ElanWrapper(filename);
-		SAnnotation sAnno = null;
-		if (curTextRel != null){
-			sAnno = SaltFactory.eINSTANCE.createSAnnotation();
-			sAnno.setSName(curTierName);
-			int startChar = curTextRel.getSStart();
-			int stopChar = curTextRel.getSEnd();
-			String check = curTextRel.getSTextualDS().getSText().substring(startChar, stopChar);
-			String value = ew.getValueInTier(curTierName, et.getBeginTime(), et.getEndTime());
-			if (!check.equals(et.getTok())){
-				System.out.println("error: " + check + " != " + et.getTok() + " at time " + et.getBeginTime());
-			}
-			if (value != null){
-				sAnno.setSValue(value.trim());
-				sAnno.setSNS("elan");
-				curTextRel.getSToken().addSAnnotation(sAnno);
-			}
-		}
-		if (curTextRel == null){
-			STextualDS sTextualDS = sDocument.getSDocumentGraph().getSTextualDSs().get(0);
-			//as a means to group elements, layers (SLayer) can be used. here, a layer
-			//named "morphology" is created and the tokens will be added to it
-			SLayer annoLayer = SaltFactory.eINSTANCE.createSLayer();
-			annoLayer.setSName("annotations");
-			sDocument.getSDocumentGraph().addSLayer(annoLayer);
-			
-			SToken sToken= SaltFactory.eINSTANCE.createSToken();
-			sDocument.getSDocumentGraph().addSNode(sToken);
-			SLayer layer = sDocument.getSDocumentGraph().getSLayerByName("annotations").get(0);
-			layer.getSNodes().add(sToken);
-			STextualRelation sTextRel= SaltFactory.eINSTANCE.createSTextualRelation();
-			sTextRel.setSToken(sToken);
-			sTextRel.setSTextualDS(sTextualDS);
-			sTextRel.setSStart(et.getBeginChar());
-			sTextRel.setSEnd(et.getEndChar());
-			sDocument.getSDocumentGraph().addSRelation(sTextRel);
-			
-			sAnno = SaltFactory.eINSTANCE.createSAnnotation();
-			sAnno.setSName(curTierName);
-			sAnno.setSValue(curValue.trim());
-			sAnno.setSNS("elan");
-			sTextRel.getSToken().addSAnnotation(sAnno);
 		}
 	}
 }
