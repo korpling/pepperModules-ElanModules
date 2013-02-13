@@ -123,7 +123,7 @@ public class ElanImporterMain
 		return out;
 	}
 	
-	public static String tmpPathName= "./_tmp/";
+	public static String tmpPathName= "/home/tom/DDDcorpora/salt-public/Heliand";
 		
 	public static String getHello()
 	{

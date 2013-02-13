@@ -20,7 +20,7 @@ public class ElanSpan {
 		ArrayList<ElanToken> placeholder = (ArrayList<ElanToken>) elantokens;
 		this.setBeginTime(placeholder.get(0).getBeginTime());
 		this.setEndTime(placeholder.get(placeholder.size()-1).getEndTime());
-		this.setBeginChar(placeholder.get(0).getEndChar());
+		this.setBeginChar(placeholder.get(0).getBeginChar());
 		this.setEndChar(placeholder.get(placeholder.size()-1).getEndChar());
 		this.setName(name);
 		this.setValue(value);

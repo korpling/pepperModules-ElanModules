@@ -30,6 +30,8 @@ public class ElanWrapper {
 		
 	}
 
+	
+	
 	public String getPrimaryText() {
 		StringBuffer primText = new StringBuffer();
 		TierImpl charTier = (TierImpl) elan.getTierWithId(this.getPrimTierName());
