@@ -89,7 +89,7 @@ public class DDDPreparer {
 			String tierName = tier.getName();
 			Vector<AbstractAnnotation> annos = tier.getAnnotations();
 			for (AbstractAnnotation anno : annos){
-				String annoValue = anno.getValue();
+				String annoValue = anno.getValue().trim();
 				int beginTime = (int) anno.getBeginTimeBoundary();
 				int endTime = (int) anno.getEndTimeBoundary();
 				
@@ -122,7 +122,7 @@ public class DDDPreparer {
 				}
 				
 				// notify of [] at the beginning or ending of annotations
-				if ( annoValue.trim().length() > 1 & (annoValue.startsWith("[") | annoValue.endsWith("]"))){
+				if (annoValue.contains("[") | annoValue.contains("]")){
 					String newValue = annoValue.replace("[", "").replace("]", "");
 					anno.setValue(newValue);
 					log = log + ("CHANGE: " + fin + ":" + 
