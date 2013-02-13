@@ -48,7 +48,7 @@ public class DDDPreparer {
 		System.out.println("working on " + fname);
 		
 		// go through the tiers and report issues (e.g. timeslots, weird symbols)
-		reportIssues(fname, "/home/tom/Dropbox/ElanModule/DDDPreparer.issues");
+		reportIssues(fname);
 		
 		// search and replace
 		searchAndReplaces(fetchArrayFromPropFile("searchAndReplace", prop));
@@ -83,7 +83,7 @@ public class DDDPreparer {
 		}
 	}
 	
-	private static void reportIssues(String fin, String fout){
+	private static void reportIssues(String fin){
 		Vector<TierImpl> tiers = eaf.getTiers();
 		for (TierImpl tier : tiers){
 			String tierName = tier.getName();
