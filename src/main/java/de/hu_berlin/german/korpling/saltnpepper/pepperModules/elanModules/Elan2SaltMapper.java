@@ -9,6 +9,7 @@ import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 
+import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperModuleProperties;
 import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.exceptions.ELANImporterException;
 import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.importer.ElanSpan;
 import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.importer.ElanToken;
@@ -64,6 +65,16 @@ public class Elan2SaltMapper
 	//TODO remove when inheriting from PepperMapper
 	public void setResourceURI(URI resourceURI) {
 		this.resourceURI= resourceURI;
+	}
+	//TODO remove when inheriting from PepperMapper
+	private PepperModuleProperties props=null;
+	//TODO remove when inheriting from PepperMapper
+	public void setProps(PepperModuleProperties props) {
+		this.props = props;
+	}
+	//TODO remove when inheriting from PepperMapper
+	public PepperModuleProperties getProps() {
+		return props;
 	}
 	
 	//TODO set @override

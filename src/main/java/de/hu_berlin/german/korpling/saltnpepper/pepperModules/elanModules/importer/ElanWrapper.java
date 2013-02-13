@@ -2,19 +2,19 @@ package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.impor
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
 import mpi.eudico.server.corpora.clom.Annotation;
 import mpi.eudico.server.corpora.clomimpl.abstr.AbstractAnnotation;
 import mpi.eudico.server.corpora.clomimpl.abstr.TierImpl;
 import mpi.eudico.server.corpora.clomimpl.abstr.TranscriptionImpl;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SToken;
 
 public class ElanWrapper {
 	
 	private TranscriptionImpl elan;
 	private String primTierName= "tok";
+	
+	
 	public void setPrimTierName(String primTierName) {
 		this.primTierName = primTierName;
 	}

@@ -2,19 +2,19 @@
 <?xml-model href="http://www.oasis-open.org/docbook/xml/5.0/rng/docbook.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
 <book xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0">
     <info>
-        <title>SampleModules</title>
+        <title>ElanModules</title>
         <subtitle>User's Guide</subtitle>
         <authorgroup>
             <author>
                 <personname>
-                    <firstname>YOUR</firstname>
-                    <surname>NAME</surname>
+                    <firstname>Tom</firstname>
+                    <surname>Ruette</surname>
                 </personname>
             </author>
         </authorgroup>
         <copyright>
-            <year>THE DATE OF NOW</year>
-            <holder>YOUR NAME, All rights reserved.</holder>
+            <year>2013</year>
+            <holder>Humboldt Universität zu Berlin</holder>
         </copyright>
         <releaseinfo>Version ${project.version}</releaseinfo>
     </info>
@@ -46,61 +46,17 @@
                 </thead>
                 <tbody>
                     <row>
-                        <entry><xref linkend="sample_importer" endterm="sample_importer_name"
-                            /></entry>
+                        <entry><xref linkend="elan_importer" endterm="elan_importer_name"/></entry>
                         <entry>importer</entry>
-                        <entry>version</entry>
-                    </row>
-                    <row>
-                        <entry><xref linkend="sample_manipulator" endterm="sample_manipulator_name"
-                            /></entry>
-                        <entry>manipulator</entry>
-                        <entry> -- </entry>
-                    </row>
-                    <row>
-                        <entry><xref linkend="sample_exporter" endterm="sample_exporter_name"
-                            /></entry>
-                        <entry>exporter</entry>
-                        <entry>version</entry>
+                        <entry>eaf</entry>
                     </row>
                 </tbody>
             </tgroup>
         </table>
     </chapter>
-    <chapter xml:id="changes">
-        <title>Changes</title>
-        <para> This chapter contains the changes in version ${project.version} compared to the
-            previous version. </para>
-        <section>
-            <title><xref linkend="sample_importer_name"/></title>
-            <itemizedlist spacing="compact">
-                <listitem>
-                    <para>Change 1</para>
-                    <para>Change 2</para>
-                </listitem>
-            </itemizedlist>
-        </section>
-        <section>
-            <title><xref linkend="sample_manipulator_name"/></title>
-            <itemizedlist spacing="compact">
-                <listitem>
-                    <para>Change 1</para>
-                    <para>Change 2</para>
-                </listitem>
-            </itemizedlist>
-        </section>
-        <section>
-            <title><xref linkend="sample_exporter_name"/></title>
-            <itemizedlist spacing="compact">
-                <listitem>
-                    <para>Change 1</para>
-                    <para>Change 2</para>
-                </listitem>
-            </itemizedlist>
-        </section>
-    </chapter>
-    <chapter xml:id="sample_importer">
-        <title xml:id="sample_importer_name">SampleImporter</title>
+    
+    <chapter xml:id="elan_importer">
+        <title xml:id="elan_importer_name">ElanImporter</title>
         <para>General information about this importer.</para>
         <sect1>
             <title>Mapping to Salt</title>
@@ -126,115 +82,18 @@
                     </thead>
                     <tbody>
                         <row>
-                            <entry><xref linkend="prop_prop1" endterm="importer_prop1_title"
-                                /></entry>
-                            <entry>data type (e.g. Boolean) or a list of possible values (e.g.
-                                value1|value2)</entry>
-                            <entry>optional|mandatory</entry>
-                            <entry>default value</entry>
+                            <entry><xref linkend="prop_prop1" endterm="importer_prop1_title"/></entry>
+                            <entry>textual value</entry>
+                            <entry>optional</entry>
+                            <entry/>
                         </row>
                     </tbody>
                 </tgroup>
             </table>
             <sect2 xml:id="prop_prop1">
-                <title xml:id="importer_prop1_title">sampleImporter.property1</title>
-                <para><code>sampleImporter.property1=SYNOPSIS (e.g. 'value1, value2' for
-                        lsits)</code></para>
-                <para>A detailed description of the property and resulting differences in the
-                    mapping to the salt model.</para>
-            </sect2>
-        </sect1>
-    </chapter>
-    <chapter xml:id="sample_manipulator">
-        <title xml:id="sample_manipulator_name">SampleManipulator</title>
-        <para>General information about this manipulator.</para>
-        <sect1>
-            <title>Mapping to Salt</title>
-            <para>This section shall describe the mapping from the source salt model and the target
-                salt model.</para>
-        </sect1>
-        <sect1>
-            <title>Properties</title>
-            <para> The table <xref linkend="manipulator_prop_overview"/> contains an overview of all
-                usable properties to customize the behaviour of this pepper module. The following
-                section contains a close description to each single property and describes the
-                resulting differences in the mapping to the salt model.</para>
-            <table xml:id="manipulator_prop_overview" frame="all">
-                <title>properties to customize manipulator behaviour</title>
-                <tgroup cols="4" align="left" colsep="1" rowsep="1">
-                    <thead>
-                        <row>
-                            <entry>Name of property</entry>
-                            <entry>Type of property</entry>
-                            <entry>optional/ mandatory</entry>
-                            <entry>default value</entry>
-                        </row>
-                    </thead>
-                    <tbody>
-                        <row>
-                            <entry><xref linkend="manipulator_prop_prop1"
-                                    endterm="manipulator_prop1_title"/></entry>
-                            <entry>data type (e.g. Boolean) or a list of possible values (e.g.
-                                value1|value2)</entry>
-                            <entry>optional|mandatory</entry>
-                            <entry>default value</entry>
-                        </row>
-                    </tbody>
-                </tgroup>
-            </table>
-            <sect2 xml:id="manipulator_prop_prop1">
-                <title xml:id="manipulator_prop1_title">sampleManipulator.property1</title>
-                <para><code>sampleManipulator.property1=SYNOPSIS (e.g. 'value1, value2' for
-                        lsits)</code></para>
-                <para>A detailed description of the property and resulting differences in the
-                    mapping to the salt model.</para>
-            </sect2>
-        </sect1>
-    </chapter>
-
-    <chapter xml:id="sample_exporter">
-        <title xml:id="sample_exporter_name">SampleExporter</title>
-        <para>General information about this exporter.</para>
-        <sect1>
-            <title>Mapping to Salt</title>
-            <para>This section shall describe the mapping from the salt model to the target
-                format.</para>
-        </sect1>
-        <sect1>
-            <title>Properties</title>
-            <para> The table <xref linkend="exporter_prop_overview"/> contains an overview of all
-                usable properties to customize the behaviour of this pepper module. The following
-                section contains a close description to each single property and describes the
-                resulting differences in the mapping to the salt model.</para>
-            <table xml:id="exporter_prop_overview" frame="all">
-                <title>properties to customize exporter behaviour</title>
-                <tgroup cols="4" align="left" colsep="1" rowsep="1">
-                    <thead>
-                        <row>
-                            <entry>Name of property</entry>
-                            <entry>Type of property</entry>
-                            <entry>optional/ mandatory</entry>
-                            <entry>default value</entry>
-                        </row>
-                    </thead>
-                    <tbody>
-                        <row>
-                            <entry><xref linkend="exporter_prop_prop1"
-                                    endterm="exporter_prop_prop1_title"/></entry>
-                            <entry>data type (e.g. Boolean) or a list of possible values (e.g.
-                                value1|value2)</entry>
-                            <entry>optional|mandatory</entry>
-                            <entry>default value</entry>
-                        </row>
-                    </tbody>
-                </tgroup>
-            </table>
-            <sect2 xml:id="exporter_prop_prop1">
-                <title xml:id="exporter_prop_prop1_title">sampleExporter.property1</title>
-                <para><code>sampleexporter.property1=SYNOPSIS (e.g. 'value1, value2' for
-                        lsits)</code></para>
-                <para>A detailed description of the property and resulting differences in the
-                    mapping to the salt model.</para>
+                <title xml:id="importer_prop1_title">elanImporter.primTierName</title>
+                <para>Determines which main tier is used to be mapped to
+                        <classname>STextualDS</classname> object.</para>
             </sect2>
         </sect1>
     </chapter>
