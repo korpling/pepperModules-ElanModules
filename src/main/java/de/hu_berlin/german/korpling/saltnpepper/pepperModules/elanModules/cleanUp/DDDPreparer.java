@@ -121,18 +121,16 @@ public class DDDPreparer {
 					}
 				}
 				
-				// notify of [] at the beginning or ending of annotations in referenztext b
-				if (tierName.equals("Referenztext B")){
-					if ( annoValue.trim().length() > 1 & (annoValue.startsWith("[") | annoValue.endsWith("]"))){
-						String newValue = annoValue.replace("[", "").replace("]", "");
-						anno.setValue(newValue);
-						log = log + ("CHANGE: " + fin + ":" + 
-								tierName + ":" + 
-								Milliseconds2HumanReadable(beginTime) + ":" + 
-								Milliseconds2HumanReadable(endTime) + ":" + 
-								annoValue.trim() + 
-								" | removed a [ or ] character at beginning or ending, this might be an error\n");
-					}
+				// notify of [] at the beginning or ending of annotations
+				if ( annoValue.trim().length() > 1 & (annoValue.startsWith("[") | annoValue.endsWith("]"))){
+					String newValue = annoValue.replace("[", "").replace("]", "");
+					anno.setValue(newValue);
+					log = log + ("CHANGE: " + fin + ":" + 
+							tierName + ":" + 
+							Milliseconds2HumanReadable(beginTime) + ":" + 
+							Milliseconds2HumanReadable(endTime) + ":" + 
+							annoValue.trim() + 
+							" | removed a [ or ] character at beginning or ending, this might be an error\n");
 				}
 			}
 		}
