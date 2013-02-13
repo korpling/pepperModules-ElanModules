@@ -225,7 +225,7 @@ public class DDDPreparer {
 					if (compareAnno != null){
 						if (compareAnno.getValue().matches("\\b(" + condValue + ")\\b")){
 							test = true;
-							condition = condition + "; " + actualCondition;
+							condition = condition + actualCondition + "; ";
 						}
 					}
 				}
