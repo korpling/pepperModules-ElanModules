@@ -100,6 +100,7 @@ public class Elan2SaltMapper
 	public void mapSDocument()
 	{
 		// set the elan document
+		// TODO is this the nicest way of getting the elan path?
 		String fname = sDocument.getSMetaAnnotation("elan::origFile").getValueString();
 		System.out.println("filename: " +fname);
 		this.elan = new TranscriptionImpl(fname);
@@ -144,20 +145,24 @@ public class Elan2SaltMapper
 	}
 	
 	/**
-	 * function to traverse an elan document (going through tiers, then going through the annotations in the tiers)
-	 * the retrieved annotations are mapped to salt, either by adding them to an existing salt token or salt span
-	 * or by creating a new salt token or span.
+	 * function to go through the elan document and create the mapped salt document
 	 * @param sDocument from the meta annotation in the salt document, the actual elan file is retrieved.
 	 */
 	public void traverseElanDocument(SDocument sDocument){
 		ArrayList<String> maintiers = new ArrayList<String>();
+		// TODO properties
 		maintiers.add("tok");
 		maintiers.add("character");
 		maintiers.add("txt");
+		// set the tokens from the maintiers
 		createSTokensForMainTiers(maintiers);
+		// go through the elan document and add annotations
 		addAnnotations();
 	}
 	
+	/**
+	 * function to go through elan document, and add the elan annos to salt tokens and spans
+	 */
 	public void addAnnotations(){
 		// fetch the primary text
 		STextualDS sTextualDS = this.getSDocument().getSDocumentGraph().getSTextualDSs().get(0);
@@ -175,8 +180,10 @@ public class Elan2SaltMapper
 				// if there is something interesting in the value, grab everything you can get about this anno
 				if (!value.isEmpty()){
 					try{
+						// get the positions in the primary text
 						int beginChar = time2char.get(beginTime);
 						int endChar = time2char.get(endTime);
+						
 						// create a sequence that we can use to search for a related token
 				        SDataSourceSequence sequence= SaltFactory.eINSTANCE.createSDataSourceSequence();
 				        sequence.setSSequentialDS(sTextualDS);
@@ -191,12 +198,14 @@ public class Elan2SaltMapper
 				        // go through the retrieved tokens, and only keep the one whose beginning and ending are exact matches
 				        for (SToken st : sTokens){
 				        	// weird salt way of getting the textrel of an stoken
+				        	// TODO make this a function
 				        	EList<STYPE_NAME> relTypes= new BasicEList<STYPE_NAME>();
 				            relTypes.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
 				            EList<SDataSourceSequence> sTextRels = sDocument.getSDocumentGraph().getOverlappedDSSequences(st, relTypes);
 				            // but here you can grab the send and sstart (assuming there is one hit)
 				            int sStart = sTextRels.get(0).getSStart();
 				            int sStop = sTextRels.get(0).getSEnd();
+				        
 				            // do the test
 				            if (sStart == beginChar & sStop == endChar){
 				            	sToken = st;
@@ -218,7 +227,7 @@ public class Elan2SaltMapper
 					        // go through the retrieved spans, and only keep the one whose beginning and ending are exact matches
 					        for (SSpan sp : sSpans){
 					        	// weird salt way of getting the spanning relation of an sspan
-					        	// TODO make this a function
+					        	// TODO make this a function, so we can use it above, too
 					        	EList<STYPE_NAME> relTypes= new BasicEList<STYPE_NAME>();
 					            relTypes.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
 					            EList<SDataSourceSequence> sSpanRels = sDocument.getSDocumentGraph().getOverlappedDSSequences(sp, relTypes);
@@ -237,7 +246,7 @@ public class Elan2SaltMapper
 					        // ok, last chance, perhaps there was no span yet, so we have to create one
 					        if (sSpan == null){
 						        EList<SToken> sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
-						        // TODO test if the beginning and end of the sNewTokens fits the elan annotation begin and ending
+						        // TODO test if the beginning and end of the sNewTokens fits the elan annotation begin and ending, use the function
 						        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
 						        newSpan.createSAnnotation("elan", tier.getName(), value);
 					        }
@@ -252,37 +261,63 @@ public class Elan2SaltMapper
 	
 	protected Map<Long,Integer> time2char = new HashMap();
 	
+	/**
+	 * function to go through the elan maintiers and set salt tokens for the segmentations in these tiers
+	 * @param maintiers the main tiers in elan, for which you want to create salt segmentations
+	 */
 	public void createSTokensForMainTiers(ArrayList<String> maintiers){
+		// go through the elan tiers
 		for (Object obj : this.getElanModel().getTiers()){
 			TierImpl tier = (TierImpl) obj;
 			STextualDS primaryText = sDocument.getSDocumentGraph().getSTextualDSs().get(0);
+			
+			// because we need to calculate the positions of the tokens in the primary text, we need these two things
 			String primtextchangeable = primaryText.getSText();
 			int offset = 0;
+			
+			// go through the annotations if it is a maintier
 			if (maintiers.contains(tier.getName())){
 				for (Object annoObj : tier.getAnnotations()){
 					Annotation anno = (Annotation) annoObj;
 					String name = tier.getName();
 					String value = anno.getValue().trim();
-					if (!value.isEmpty()){						
+					if (!value.isEmpty()){			
+						// get the begin and end time
 						long beginTime = anno.getBeginTimeBoundary();
 						long endTime = anno.getEndTimeBoundary();
+						
+						// the start value is the position of value in primtextchangeable
 						int start =  primtextchangeable.indexOf(value);
-						if (start < 0 | start > 1){
+						// this start value should not be larger than 3 (small number), because otherwise there is something wrong
+						if (start < 0 | start > 3){
 							throw new ELANImporterException("token was not found in primarytext: (" + value + ") (primtext:" + primtextchangeable + ")");
 						}
+						
+						// the stop value is the start value plus the length of the value
 			        	int stop = start + value.length();
+			        	
+			        	// but because we cut something of the primary text (the amount in offset) we have to add this
 			        	int corstart = offset + start;
 			        	int corstop = offset + stop;
+			        	
+			        	// we keep a map of beginTimes and beginChars, and of endTimes and endChars
 			        	if (!time2char.containsKey(beginTime)){
 			        		time2char.put(beginTime, corstart);
 			        	}
 			        	if (!time2char.containsKey(endTime)){
 			        		time2char.put(endTime, corstop);
 			        	}
+			        	
+			        	// update the offset and primary text
 			        	offset = offset + stop;
 			        	primtextchangeable = primtextchangeable.substring(stop);
-						SToken sToken = sDocument.getSDocumentGraph().createSToken(primaryText, corstart, corstop);
-						SLayer curSLayer = sDocument.getSDocumentGraph().getSLayerByName("annotations").get(0);
+						
+			        	// create the token
+			        	SToken sToken = sDocument.getSDocumentGraph().createSToken(primaryText, corstart, corstop);
+						
+			        	// add the token to the layer
+			        	// TODO properties, parameterize this?
+			        	SLayer curSLayer = sDocument.getSDocumentGraph().getSLayerByName("annotations").get(0);
 						curSLayer.getSNodes().add(sToken);
 					}
 				}
