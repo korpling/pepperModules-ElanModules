@@ -27,6 +27,7 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SDocument;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SDataSourceSequence;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SDocumentGraph;
+import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SOrderRelation;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SSpan;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SSpanningRelation;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STYPE_NAME;
@@ -160,6 +161,9 @@ public class Elan2SaltMapper
 		addAnnotations();
 	}
 	
+	
+	public static final String NAMESPACE_ELAN="elan";
+	
 	/**
 	 * function to go through elan document, and add the elan annos to salt tokens and spans
 	 */
@@ -215,7 +219,7 @@ public class Elan2SaltMapper
 	
 				        // if we found a matching SToken, then add the annotation
 				        if (sToken != null){
-				        	sToken.createSAnnotation("elan", tier.getName(), value.trim());	
+				        	sToken.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value.trim());	
 				        }
 				        
 				        // if we did not find a matching SToken, then it is perhaps a span?
@@ -241,14 +245,14 @@ public class Elan2SaltMapper
 					            }
 					        }
 					        if (sSpan != null){
-					        	sSpan.createSAnnotation("elan", tier.getName(), value);	
+					        	sSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);	
 					        }
 					        // ok, last chance, perhaps there was no span yet, so we have to create one
 					        if (sSpan == null){
 						        EList<SToken> sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
 						        // TODO test if the beginning and end of the sNewTokens fits the elan annotation begin and ending, use the function
 						        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
-						        newSpan.createSAnnotation("elan", tier.getName(), value);
+						        newSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);
 					        }
 				        }
 					}catch (NullPointerException noppes){
@@ -276,7 +280,9 @@ public class Elan2SaltMapper
 			int offset = 0;
 			
 			// go through the annotations if it is a maintier
-			if (maintiers.contains(tier.getName())){
+			if (maintiers.contains(tier.getName()))
+			{
+				SToken lastSToken= null;
 				for (Object annoObj : tier.getAnnotations()){
 					Annotation anno = (Annotation) annoObj;
 					String name = tier.getName();
@@ -315,10 +321,20 @@ public class Elan2SaltMapper
 			        	// create the token
 			        	SToken sToken = sDocument.getSDocumentGraph().createSToken(primaryText, corstart, corstop);
 						
+			        	if (lastSToken!= null)
+			        	{// create SOrderRelation between current and last token (if exists)
+			        		SOrderRelation sOrderRel= SaltFactory.eINSTANCE.createSOrderRelation();
+			        		sOrderRel.setSource(lastSToken);
+			        		sOrderRel.setSTarget(sToken);
+			        		sOrderRel.addSType(name);
+			        		sDocument.getSDocumentGraph().addSRelation(sOrderRel);
+			        	}// create SOrderRelation between current and last token (if exists)
+			        	
 			        	// add the token to the layer
 			        	// TODO properties, parameterize this?
 			        	SLayer curSLayer = sDocument.getSDocumentGraph().getSLayerByName("annotations").get(0);
 						curSLayer.getSNodes().add(sToken);
+						lastSToken= sToken;
 					}
 				}
 			}
