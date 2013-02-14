@@ -374,11 +374,24 @@ public class Elan2SaltMapper
 					        
 					        // find the relevant tokens
 					        EList<SToken> sNewTokens = sDocument.getSDocumentGraph().getSTokensBySequence(sequence);
-					        System.out.println(sNewTokens);
+//					        System.out.println(sNewTokens);
 					        // TODO test if the beginning and end of the sNewTokens fits the elan annotation begin and ending, use the function
 					        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
-					        System.out.println("span created: " + newSpan);
-				        	System.out.println("span found: " + sDocument.getSDocumentGraph().getSSpanBySequence(sequence));
+//					        System.out.println("span created: " + newSpan);
+//				        	System.out.println("span found: " + sDocument.getSDocumentGraph().getSSpanBySequence(sequence));
+//				        	System.out.println("nodes found: " +sDocument.getSDocumentGraph().getSNodeBySequence(sequence));
+				        	
+				        	EList<STYPE_NAME> rels= new BasicEList<STYPE_NAME>();
+				        	rels.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
+				        	EList<SDataSourceSequence> sequences= sDocument.getSDocumentGraph().getOverlappedDSSequences(newSpan, rels);
+				        	String text= ((STextualDS)sequences.get(0).getSSequentialDS()).getSText().substring(sequences.get(0).getSStart(), sequences.get(0).getSEnd());
+				        	if (!value.equals(text))
+				        	{
+				        		System.out.println("---------------------------> value:"+ value+ ", text: "+ text);
+				        		
+				        	}
+				        	
+				        	
 					        
 				        	if (lastSSpan!= null)
 				        	{// create SOrderRelation between current and last token (if exists)
