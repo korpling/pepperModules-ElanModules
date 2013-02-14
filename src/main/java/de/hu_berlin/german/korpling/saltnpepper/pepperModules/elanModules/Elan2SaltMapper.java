@@ -156,7 +156,7 @@ public class Elan2SaltMapper
 		maintiers.add("character");
 		maintiers.add("txt");
 		// set the tokens from the maintiers
-		createSTokensForMainTiers(maintiers);
+		createSegmentationForMainTiers(maintiers);
 		// go through the elan document and add annotations
 		addAnnotations();
 	}
@@ -170,7 +170,6 @@ public class Elan2SaltMapper
 	public void addAnnotations(){
 		// fetch the primary text
 		STextualDS sTextualDS = this.getSDocument().getSDocumentGraph().getSTextualDSs().get(0);
-		
 		// go through the tiers in elan
 		for (Object obj : this.getElanModel().getTiers()){
 			TierImpl tier = (TierImpl) obj;
@@ -181,13 +180,12 @@ public class Elan2SaltMapper
 				String value = anno.getValue().trim();
 				long beginTime = anno.getBeginTimeBoundary();
 				long endTime = anno.getEndTimeBoundary();
+				// get the positions in the primary text
+				int beginChar = time2char.get(beginTime);
+				int endChar = time2char.get(endTime);
 				// if there is something interesting in the value, grab everything you can get about this anno
 				if (!value.isEmpty()){
 					try{
-						// get the positions in the primary text
-						int beginChar = time2char.get(beginTime);
-						int endChar = time2char.get(endTime);
-						
 						// create a sequence that we can use to search for a related token
 				        SDataSourceSequence sequence= SaltFactory.eINSTANCE.createSDataSourceSequence();
 				        sequence.setSSequentialDS(sTextualDS);
@@ -196,6 +194,7 @@ public class Elan2SaltMapper
 				        
 				        // use this sequence to find the related tokens
 				        EList<SToken> sTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
+				        System.out.println("found tokens: " + sTokens);
 				        
 				        // initialize the wanted token
 				        SToken sToken = null;
@@ -219,13 +218,14 @@ public class Elan2SaltMapper
 	
 				        // if we found a matching SToken, then add the annotation
 				        if (sToken != null){
+				        	System.out.println("token found");
 				        	sToken.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value.trim());	
 				        }
 				        
 				        // if we did not find a matching SToken, then it is perhaps a span?
 				        if (sToken == null){
 				        	// Let's see if there are already some spans in the sDocument that fit the bill
-					        EList<SSpan> sSpans = this.getSDocument().getSDocumentGraph().getSSpanBySequence(sequence);
+					        EList<SSpan> sSpans = sDocument.getSDocumentGraph().getSSpanBySequence(sequence);
 					        // initialize the wanted token
 					        SSpan sSpan = null;
 					        // go through the retrieved spans, and only keep the one whose beginning and ending are exact matches
@@ -245,10 +245,12 @@ public class Elan2SaltMapper
 					            }
 					        }
 					        if (sSpan != null){
+					        	System.out.println("span found");
 					        	sSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);	
 					        }
 					        // ok, last chance, perhaps there was no span yet, so we have to create one
 					        if (sSpan == null){
+					        	System.out.println("Creating new span");
 						        EList<SToken> sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
 						        // TODO test if the beginning and end of the sNewTokens fits the elan annotation begin and ending, use the function
 						        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
@@ -269,73 +271,128 @@ public class Elan2SaltMapper
 	 * function to go through the elan maintiers and set salt tokens for the segmentations in these tiers
 	 * @param maintiers the main tiers in elan, for which you want to create salt segmentations
 	 */
-	public void createSTokensForMainTiers(ArrayList<String> maintiers){
-		// go through the elan tiers
-		for (Object obj : this.getElanModel().getTiers()){
-			TierImpl tier = (TierImpl) obj;
-			STextualDS primaryText = sDocument.getSDocumentGraph().getSTextualDSs().get(0);
+	public void createSegmentationForMainTiers(ArrayList<String> maintiers){
+		// find the tier with the smallest segmentation for the tokens
+		int l = -1;
+		String minimalTierName = null;
+		for (String tierName : maintiers){
+			TierImpl tier = (TierImpl) this.getElanModel().getTierWithId(tierName);
+			if (tier.getAnnotations().size() > l){
+				l = tier.getAnnotations().size();
+				minimalTierName = tierName;
+			}
+		}
+		System.out.println("smallest tier is " + minimalTierName);
+		// remove this tier from the maintiers, because it now has become the tokentier
+		maintiers.remove(minimalTierName);
+
+		// set the tokens for the minimal Tier
+		TierImpl smallestTier = (TierImpl) this.getElanModel().getTierWithId(minimalTierName);
+		STextualDS primaryText = sDocument.getSDocumentGraph().getSTextualDSs().get(0);
+		// because we need to calculate the positions of the tokens in the primary text, we need these two things
+		String primtextchangeable = primaryText.getSText();
+		int offset = 0;
+		// go through the annotations if it is a maintier
+		SToken lastSToken= null;
+		for (Object annoObj : smallestTier.getAnnotations()){
+			Annotation anno = (Annotation) annoObj;
+			String name = smallestTier.getName();
+			String value = anno.getValue().trim();
+	
+			// get the begin and end time
+			long beginTime = anno.getBeginTimeBoundary();
+			long endTime = anno.getEndTimeBoundary();
 			
-			// because we need to calculate the positions of the tokens in the primary text, we need these two things
-			String primtextchangeable = primaryText.getSText();
-			int offset = 0;
+			// the start value is the position of value in primtextchangeable
+			int start =  primtextchangeable.indexOf(value);
+			// this start value should not be larger than 3 (small number), because otherwise there is something wrong
+			if (start < 0 | start > 2){
+				throw new ELANImporterException("token was not found in primarytext: (" + name + ", " + value + ") (primtext:" + primtextchangeable + ")");
+			}
+
+			// the stop value is the start value plus the length of the value
+        	int stop = start + value.length();
+        	
+        	// but because we cut something of the primary text (the amount in offset) we have to add this
+        	int corstart = offset + start;
+        	int corstop = offset + stop;
+        	
+        	// we keep a map of beginTimes and beginChars, and of endTimes and endChars
+        	if (!time2char.containsKey(beginTime)){
+        		time2char.put(beginTime, corstart);
+        	}
+        	if (!time2char.containsKey(endTime)){
+        		time2char.put(endTime, corstop);
+        	}
+        	
+        	// update the offset and primary text
+        	offset = offset + stop;
+        	primtextchangeable = primtextchangeable.substring(stop);
 			
-			// go through the annotations if it is a maintier
-			if (maintiers.contains(tier.getName()))
-			{
-				SToken lastSToken= null;
-				for (Object annoObj : tier.getAnnotations()){
-					Annotation anno = (Annotation) annoObj;
-					String name = tier.getName();
-					String value = anno.getValue().trim();
-					if (!value.isEmpty()){			
-						// get the begin and end time
-						long beginTime = anno.getBeginTimeBoundary();
-						long endTime = anno.getEndTimeBoundary();
-						
-						// the start value is the position of value in primtextchangeable
-						int start =  primtextchangeable.indexOf(value);
-						// this start value should not be larger than 3 (small number), because otherwise there is something wrong
-						if (start < 0 | start > 3){
-							throw new ELANImporterException("token was not found in primarytext: (" + value + ") (primtext:" + primtextchangeable + ")");
+        	// create the token
+        	SToken sToken = sDocument.getSDocumentGraph().createSToken(primaryText, corstart, corstop);
+			
+        	if (lastSToken!= null)
+        	{// create SOrderRelation between current and last token (if exists)
+        		SOrderRelation sOrderRel= SaltFactory.eINSTANCE.createSOrderRelation();
+        		sOrderRel.setSource(lastSToken);
+        		sOrderRel.setSTarget(sToken);
+        		sOrderRel.addSType(name);
+        		sDocument.getSDocumentGraph().addSRelation(sOrderRel);
+        		lastSToken = sToken;
+        	}// create SOrderRelation between current and last token (if exists)
+        	
+        	// add the token to the layer
+        	// TODO properties, parameterize this?
+        	SLayer curSLayer = sDocument.getSDocumentGraph().getSLayerByName("annotations").get(0);
+			curSLayer.getSNodes().add(sToken);
+		}
+			
+		// now make arching spans for the other maintiers
+		for (String tiername : maintiers){
+			TierImpl tier = (TierImpl) this.getElanModel().getTierWithId(tiername);
+			System.out.println(tier.getName());
+			// and go through the individual annotations
+			SSpan lastSSpan = null;
+			for (Object segObj : tier.getAnnotations()){
+				Annotation anno = (Annotation) segObj;
+				String value = anno.getValue().trim();
+				long beginTime = anno.getBeginTimeBoundary();
+				long endTime = anno.getEndTimeBoundary();
+				// if there is something interesting in the value, grab everything you can get about this anno
+				if (!value.isEmpty()){
+						try{
+							// get the positions in the primary text
+							int beginChar = time2char.get(beginTime);
+							int endChar = time2char.get(endTime);
+							
+							// create a sequence that we can use to search for a related token
+					        SDataSourceSequence sequence= SaltFactory.eINSTANCE.createSDataSourceSequence();
+					        sequence.setSSequentialDS(primaryText);
+					        sequence.setSStart((int) beginChar);
+					        sequence.setSEnd((int) endChar);
+					        
+					        // find the relevant tokens
+					        EList<SToken> sNewTokens = sDocument.getSDocumentGraph().getSTokensBySequence(sequence);
+					        System.out.println(sNewTokens);
+					        // TODO test if the beginning and end of the sNewTokens fits the elan annotation begin and ending, use the function
+					        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
+					        System.out.println("span created: " + newSpan);
+				        	System.out.println("span found: " + sDocument.getSDocumentGraph().getSSpanBySequence(sequence));
+					        
+				        	if (lastSSpan!= null)
+				        	{// create SOrderRelation between current and last token (if exists)
+				        		SOrderRelation sOrderRel= SaltFactory.eINSTANCE.createSOrderRelation();
+				        		sOrderRel.setSource(lastSSpan);
+				        		sOrderRel.setSTarget(newSpan);
+				        		sOrderRel.addSType(tier.getName());
+				        		sDocument.getSDocumentGraph().addSRelation(sOrderRel);
+				        		lastSSpan = newSpan;
+				        	}// create SOrderRelation between current and last token (if exists)
+				        	
+				        }catch (NullPointerException noppes){
+							throw new ELANImporterException("This token could not be annotated: " + tier.getName() + ", " + value + ", " + beginTime);
 						}
-						
-						// the stop value is the start value plus the length of the value
-			        	int stop = start + value.length();
-			        	
-			        	// but because we cut something of the primary text (the amount in offset) we have to add this
-			        	int corstart = offset + start;
-			        	int corstop = offset + stop;
-			        	
-			        	// we keep a map of beginTimes and beginChars, and of endTimes and endChars
-			        	if (!time2char.containsKey(beginTime)){
-			        		time2char.put(beginTime, corstart);
-			        	}
-			        	if (!time2char.containsKey(endTime)){
-			        		time2char.put(endTime, corstop);
-			        	}
-			        	
-			        	// update the offset and primary text
-			        	offset = offset + stop;
-			        	primtextchangeable = primtextchangeable.substring(stop);
-						
-			        	// create the token
-			        	SToken sToken = sDocument.getSDocumentGraph().createSToken(primaryText, corstart, corstop);
-						
-			        	if (lastSToken!= null)
-			        	{// create SOrderRelation between current and last token (if exists)
-			        		SOrderRelation sOrderRel= SaltFactory.eINSTANCE.createSOrderRelation();
-			        		sOrderRel.setSource(lastSToken);
-			        		sOrderRel.setSTarget(sToken);
-			        		sOrderRel.addSType(name);
-			        		sDocument.getSDocumentGraph().addSRelation(sOrderRel);
-			        	}// create SOrderRelation between current and last token (if exists)
-			        	
-			        	// add the token to the layer
-			        	// TODO properties, parameterize this?
-			        	SLayer curSLayer = sDocument.getSDocumentGraph().getSLayerByName("annotations").get(0);
-						curSLayer.getSNodes().add(sToken);
-						lastSToken= sToken;
-					}
 				}
 			}
 		}
