@@ -120,6 +120,23 @@ public class DDDPreparer {
 								" | removed a minus character at beginning or ending, this might be an error\n");
 					}
 				}
+
+				// make sure the characters are a single character, or a space
+				if (tierName.equals("Referenztext B")){
+					if ( annoValue.length() > 1 | annoValue.length() == 0){
+						String newValue = annoValue.trim();
+						if (newValue.isEmpty()){
+							newValue = " ";
+						}
+						anno.setValue(newValue);
+						log = log + ("CHANGE: " + fin + ":" + 
+								tierName + ":" + 
+								Milliseconds2HumanReadable(beginTime) + ":" + 
+								Milliseconds2HumanReadable(endTime) + ":" + 
+								annoValue.trim() + 
+								" | optimized character value to be exactly size 1\n");
+					}
+				}
 				
 				// notify of [] at the beginning or ending of annotations
 				if (annoValue.contains("[") | annoValue.contains("]")){
