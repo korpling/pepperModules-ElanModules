@@ -322,15 +322,15 @@ public class Elan2SaltMapper
         	// create the token
         	SToken sToken = sDocument.getSDocumentGraph().createSToken(primaryText, corstart, corstop);
         	
-        	if (lastSToken!= null)
-        	{// create SOrderRelation between current and last token (if exists)
-        		SOrderRelation sOrderRel= SaltFactory.eINSTANCE.createSOrderRelation();
-        		sOrderRel.setSource(lastSToken);
-        		sOrderRel.setSTarget(sToken);
-        		sOrderRel.addSType(name);
-        		sDocument.getSDocumentGraph().addSRelation(sOrderRel);
-        	}// create SOrderRelation between current and last token (if exists)
-    		lastSToken = sToken;
+//        	if (lastSToken!= null)
+//        	{// create SOrderRelation between current and last token (if exists)
+//        		SOrderRelation sOrderRel= SaltFactory.eINSTANCE.createSOrderRelation();
+//        		sOrderRel.setSource(lastSToken);
+//        		sOrderRel.setSTarget(sToken);
+//        		sOrderRel.addSType(name);
+//        		sDocument.getSDocumentGraph().addSRelation(sOrderRel);
+//        	}// create SOrderRelation between current and last token (if exists)
+//    		lastSToken = sToken;
 		}
 			
 		// now make arching spans for the other maintiers
@@ -364,13 +364,14 @@ public class Elan2SaltMapper
 					        // create the span
 					        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
 					        // and add an annotation
+					        newSpan.createSAnnotation(NAMESPACE_ELAN, tiername, value);
 					        
 				        	if (lastSSpan!= null)
 				        	{// create SOrderRelation between current and last token (if exists)
 				        		SOrderRelation sOrderRel= SaltFactory.eINSTANCE.createSOrderRelation();
 				        		sOrderRel.setSource(lastSSpan);
 				        		sOrderRel.setSTarget(newSpan);
-				        		sOrderRel.addSType(tier.getName());
+				        		sOrderRel.addSType(tiername);
 				        		sDocument.getSDocumentGraph().addSRelation(sOrderRel);
 				        	}// create SOrderRelation between current and last token (if exists)
 			        		lastSSpan = newSpan;
