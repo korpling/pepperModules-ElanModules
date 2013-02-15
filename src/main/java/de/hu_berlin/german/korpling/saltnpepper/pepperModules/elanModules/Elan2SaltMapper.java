@@ -35,6 +35,12 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SLayer;
  */
 public class Elan2SaltMapper 
 {
+	// properties to be set, I guess
+	public static final String NAMESPACE_ELAN="elan";
+	public static final String PRIMARY_TEXT_TIER_NAME="character";
+	public static final ArrayList<String> SEGMENTATION_TIERNAMES= new ArrayList<String>();
+	public static final ArrayList<String> IGNORE_TIERNAMES= new ArrayList<String>();
+	
 	//TODO remove when inheriting from PepperMapper
 	protected SDocument sDocument= null;
 	//TODO remove when inheriting from PepperMapper
@@ -91,20 +97,32 @@ public class Elan2SaltMapper
 	//TODO set @override
 	public void mapSDocument()
 	{
+		// set the segmentation tiers
+		SEGMENTATION_TIERNAMES.add("tok");
+		SEGMENTATION_TIERNAMES.add("txt");
+		SEGMENTATION_TIERNAMES.add("character");
+		
+		// which tiers from elan should be ignored
+		IGNORE_TIERNAMES.add("tok");
+		IGNORE_TIERNAMES.add("txt");
+		IGNORE_TIERNAMES.add("character");
+		IGNORE_TIERNAMES.add("vergleich");
+				
 		// set the elan document
 		// TODO is this the nicest way of getting the elan path?
 		String fname = sDocument.getSMetaAnnotation("elan::origFile").getValueString();
 		System.out.println("filename: " +fname);
 		this.elan = new TranscriptionImpl(fname);
-		// create the requested layers
-		SLayer morphLayer = SaltFactory.eINSTANCE.createSLayer();
-		morphLayer.setSName("annotations");
-		sDocument.getSDocumentGraph().addSLayer(morphLayer);
+
 		// create the primary text
 		createPrimaryData(sDocument);
+
 		// goes through the elan document, and makes all the elan tiers into salt tiers
-		// TODO add an option to ignore certain elan tiers
 		traverseElanDocument(sDocument);
+		
+		// reset the variables
+		SEGMENTATION_TIERNAMES.removeAll(SEGMENTATION_TIERNAMES);
+		IGNORE_TIERNAMES.removeAll(IGNORE_TIERNAMES);
 	}
 	
 	/**
@@ -121,7 +139,7 @@ public class Elan2SaltMapper
 		STextualDS sTextualDS = null;
 		{//creating the primary text
 			// TODO properties
-			TierImpl primtexttier = (TierImpl) elan.getTierWithId("character");
+			TierImpl primtexttier = (TierImpl) elan.getTierWithId(PRIMARY_TEXT_TIER_NAME);
 			StringBuffer primText = new StringBuffer();
 			for (Object obj : primtexttier.getAnnotations()){
 				AbstractAnnotation charAnno = (AbstractAnnotation) obj;
@@ -142,21 +160,13 @@ public class Elan2SaltMapper
 	 * @param sDocument from the meta annotation in the salt document, the actual elan file is retrieved.
 	 */
 	public void traverseElanDocument(SDocument sDocument){
-		ArrayList<String> maintiers = new ArrayList<String>();
-		// TODO properties
-		maintiers.add("tok");
-		maintiers.add("character");
-		maintiers.add("txt");
-		// set the tokens from the maintiers
-		createSegmentationForMainTiers(maintiers);
+		
+		// set the segments for the segmentation tiers
+		createSegmentationForMainTiers(SEGMENTATION_TIERNAMES);
+		
 		// go through the elan document and add annotations
-		ArrayList<String> ignoretiers = maintiers;
-		ignoretiers.add("vergleich");
-		addAnnotations(ignoretiers);
+		addAnnotations(IGNORE_TIERNAMES);
 	}
-	
-	
-	public static final String NAMESPACE_ELAN="elan";
 	
 	/**
 	 * function to go through elan document, and add the elan annos to salt tokens and spans
@@ -297,8 +307,7 @@ public class Elan2SaltMapper
 			
 			// the start value is the position of value in primtextchangeable
 			int start =  primtextchangeable.indexOf(value);
-			// this start value should not be larger than 3 (small number), because otherwise there is something wrong
-			if (start < 0 | start > 3){
+			if (start < 0){
 				throw new ELANImporterException("token was not found in primarytext: (" + name + ", " + value + ") (primtext:" + primtextchangeable + ")");
 			}
 
