@@ -179,6 +179,7 @@ public class ElanImporterMain
 				{//filling all of the documents in the corpus structure with document structure data	
 					Elan2SaltMapper mapper = new Elan2SaltMapper();
 					sDocument.setSDocumentGraph(SaltFactory.eINSTANCE.createSDocumentGraph());
+					System.out.println("sdoc meta" + sDocument.getSMetaAnnotations());
 					mapper.setSDocument(sDocument);
 					mapper.mapSDocument();
 				}//filling all of the documents in the corpus structure with document structure data
