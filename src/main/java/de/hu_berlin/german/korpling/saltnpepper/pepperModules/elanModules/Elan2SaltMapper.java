@@ -192,9 +192,11 @@ public class Elan2SaltMapper
 					long beginTime = anno.getBeginTimeBoundary();
 					long endTime = anno.getEndTimeBoundary();
 				
+					// TODO this is perhaps better handled by STimeline?
 					// get the positions in the primary text
 					int beginChar = time2char.get(beginTime);
 					int endChar = time2char.get(endTime);
+					
 					// if there is something interesting in the value, grab everything you can get about this anno
 					if (!value.isEmpty()){
 						// create a sequence that we can use to search for a related span
@@ -228,19 +230,11 @@ public class Elan2SaltMapper
 			        		
 			        		// check to see if this is the right span...
 			        		if (checkPrimAnno.equals(checkPrimSeq)){
-			        			if (startSeq >= beginChar){ // if the sequence is at or behind the elan start value
-				        			boolean doit = false;
-				        			if (Math.abs((endSeq - startSeq) - (endChar - beginChar)) == 0){
-				        				if (startSeq == beginChar & endSeq == endChar){
-				        					doit = true; // and the begin and end values are equal in elan and sequence, then true
-				        				}
-				        			}
-				        			if (doit){
-				        				sSpan = sp;
-				        				lastSpanIndex = i;
-				        				break;
-				        			}
-			        			}
+			        			if (startSeq == beginChar & endSeq == endChar){
+			        				sSpan = sp;
+				        			lastSpanIndex = i; // so that the next through this tier is quicker.
+				        			break;
+				        		}
 			        		}
 			        	}
 			        	
@@ -249,6 +243,7 @@ public class Elan2SaltMapper
 				        }
 				        // ok, last chance, perhaps there was no span yet, so we have to create one
 				        if (sSpan == null){
+				        	System.out.println("Creating a new SSpan. This is weird. At: " + beginTime);
 					        EList<SToken> sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
 					        // TODO test if the beginning and end of the sNewTokens fits the elan annotation begin and ending, use the function
 					        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
@@ -260,6 +255,7 @@ public class Elan2SaltMapper
 		}
 	}
 	
+	// TODO this can probably be captured by STimeline?
 	protected Map<Long,Integer> time2char = new HashMap<Long,Integer>();
 	
 	/**
@@ -314,6 +310,7 @@ public class Elan2SaltMapper
         	int corstop = offset + stop;
         	
         	// we keep a map of beginTimes and beginChars, and of endTimes and endChars
+        	// TODO this is handled by STimeline?
         	if (!time2char.containsKey(beginTime)){
         		time2char.put(beginTime, corstart);
         	}
