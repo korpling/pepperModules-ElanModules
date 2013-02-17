@@ -174,7 +174,7 @@ public class ElanImporterMain
 				System.out.println("OK");
 			}//store salt project to tmp path
 			
-			{//load salt project from tmp path
+/*			{//load salt project from tmp path
 				System.out.print("load salt project from tmp path ('"+tmpPath.getAbsolutePath()+"')...");
 				saltProject= SaltFactory.eINSTANCE.createSaltProject();
 				saltProject.loadSaltProject(URI.createFileURI(tmpPath.getAbsolutePath()));
@@ -187,7 +187,7 @@ public class ElanImporterMain
 				saltProject.saveSaltProject_DOT(uri);
 				System.out.println("OK");
 			}//store salt project in DOT format
-			
+*/			
 			System.out.println();
 		}
 		catch (Exception e) {
