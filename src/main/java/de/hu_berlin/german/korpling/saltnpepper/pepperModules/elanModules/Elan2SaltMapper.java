@@ -26,7 +26,6 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructu
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STYPE_NAME;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STextualDS;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SToken;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SLayer;
 
 /**
  * This class maps data coming from the ELAN model to a Salt model.
@@ -107,6 +106,9 @@ public class Elan2SaltMapper
 		IGNORE_TIERNAMES.add("txt");
 		IGNORE_TIERNAMES.add("character");
 		IGNORE_TIERNAMES.add("vergleich");
+		IGNORE_TIERNAMES.add("clause");
+		IGNORE_TIERNAMES.add("chapter");
+		IGNORE_TIERNAMES.add("verse");
 				
 		// set the elan document
 		// TODO is this the nicest way of getting the elan path?
@@ -195,73 +197,63 @@ public class Elan2SaltMapper
 					int endChar = time2char.get(endTime);
 					// if there is something interesting in the value, grab everything you can get about this anno
 					if (!value.isEmpty()){
-						try{
-							// create a sequence that we can use to search for a related span
-					        SDataSourceSequence sequence= SaltFactory.eINSTANCE.createSDataSourceSequence();
-					        sequence.setSSequentialDS(sTextualDS);
-					        sequence.setSStart((int) beginChar);
-					        sequence.setSEnd((int) endChar);
-					        
-					        // this span will receive the span which will be annotated
-					        SSpan sSpan = null;
+						// create a sequence that we can use to search for a related span
+				        SDataSourceSequence sequence= SaltFactory.eINSTANCE.createSDataSourceSequence();
+				        sequence.setSSequentialDS(sTextualDS);
+				        sequence.setSStart((int) beginChar);
+				        sequence.setSEnd((int) endChar);
+				        
+				        // this span will receive the span which will be annotated
+				        SSpan sSpan = null;
 
-				        	// Let's see if there are already some spans in the sDocument that fit the bill
-					        // TODO change this to the more efficient getSSpanBySequence method when Florian fixes the bug					    
-					        // EList<SSpan> sSpans = sDocument.getSDocumentGraph().getSSpanBySequence(sequence);
-				        	EList<SSpan> sSpansInSDoc = sDocument.getSDocumentGraph().getSSpans();
-				        	for (int i = lastSpanIndex; i < sSpansInSDoc.size(); i++){ // start at lastspanIndex, because previous spans are not possible
-				        		// init the current span
-				        		SSpan sp = sSpansInSDoc.get(i);
-				        		
-				        		// find the related DSSequence
-				        		EList<STYPE_NAME> rels= new BasicEList<STYPE_NAME>();
-				        		rels.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
-				        		EList<SDataSourceSequence> sequences= sDocument.getSDocumentGraph().getOverlappedDSSequences(sp, rels);
-				        		
-				        		// grab the primtext part with the elan anno start and end info
-				        		String checkPrimAnno = sTextualDS.getSText().substring(beginChar, endChar).trim();
-				        		// grab the primtext part with the dssequence start and end info
-				        		String checkPrimSeq = sTextualDS.getSText().substring(sequences.get(0).getSStart(), sequences.get(0).getSEnd()).trim();
-				        		int startSeq = sequences.get(0).getSStart();
-				        		int endSeq = sequences.get(0).getSEnd();
-				        		
-				        		// bunch of checks to see if this is the right span...
-				        		if (checkPrimAnno.equals(checkPrimSeq)){
-				        			if (startSeq >= beginChar){ // if the sequence is at or behind the elan start value
-					        			boolean doit = false;
-					        			if (Math.abs((endSeq - startSeq) - (endChar - beginChar)) == 0){
-					        				if (startSeq == beginChar & endSeq == endChar){
-					        					doit = true; // and the begin and end values are equal in elan and sequence, then true
-					        				}
-					        			}
-					        			if (Math.abs( Math.abs(endSeq - startSeq) - Math.abs(endChar - beginChar)) != 0){
-					        				if (Math.abs(startSeq - beginChar) < 2 & Math.abs(endSeq - endChar) < 2){
-					        					doit = true; // if the sequence is not exactly as long in elan as in the sequence, then check if the difference is small
-					        				}
-					        			}
-					        			if (doit){
-					        				sSpan = sp;
-					        				lastSpanIndex = i;
-					        				break;
-					        			}
+			        	// Let's see if there are already some spans in the sDocument that fit the bill
+				        // TODO change this to the more efficient getSSpanBySequence method when Florian fixes the bug					    
+				        // EList<SSpan> sSpans = sDocument.getSDocumentGraph().getSSpanBySequence(sequence);
+			        	EList<SSpan> sSpansInSDoc = sDocument.getSDocumentGraph().getSSpans();
+			        	for (int i = lastSpanIndex; i < sSpansInSDoc.size(); i++){ // start at lastspanIndex, because previous spans are not possible
+			        		// init the current span
+			        		SSpan sp = sSpansInSDoc.get(i);
+			        		
+			        		// find the related DSSequence
+			        		EList<STYPE_NAME> rels= new BasicEList<STYPE_NAME>();
+			        		rels.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
+			        		EList<SDataSourceSequence> sequences= sDocument.getSDocumentGraph().getOverlappedDSSequences(sp, rels);
+			        		
+			        		// grab the primtext part with the elan anno start and end info
+			        		String checkPrimAnno = sTextualDS.getSText().substring(beginChar, endChar).trim();
+			        		// grab the primtext part with the dssequence start and end info
+			        		String checkPrimSeq = sTextualDS.getSText().substring(sequences.get(0).getSStart(), sequences.get(0).getSEnd()).trim();
+			        		int startSeq = sequences.get(0).getSStart();
+			        		int endSeq = sequences.get(0).getSEnd();
+			        		
+			        		// check to see if this is the right span...
+			        		if (checkPrimAnno.equals(checkPrimSeq)){
+			        			if (startSeq >= beginChar){ // if the sequence is at or behind the elan start value
+				        			boolean doit = false;
+				        			if (Math.abs((endSeq - startSeq) - (endChar - beginChar)) == 0){
+				        				if (startSeq == beginChar & endSeq == endChar){
+				        					doit = true; // and the begin and end values are equal in elan and sequence, then true
+				        				}
 				        			}
-				        		}
-				        	}
-				        	
-					        if (sSpan != null){
-					        	sSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);	
-					        }
-					        // ok, last chance, perhaps there was no span yet, so we have to create one
-					        if (sSpan == null){
-						        EList<SToken> sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
-						        // TODO test if the beginning and end of the sNewTokens fits the elan annotation begin and ending, use the function
-						        sNewTokens = stripEmptySTokens(sNewTokens);
-						        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
-						        newSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);
-					        }
-						}catch (NullPointerException noppes){
-							throw new ELANImporterException("This token could not be annotated: " + tier.getName() + ", " + value + ", " + beginTime);
-						}
+				        			if (doit){
+				        				sSpan = sp;
+				        				lastSpanIndex = i;
+				        				break;
+				        			}
+			        			}
+			        		}
+			        	}
+			        	
+				        if (sSpan != null){
+				        	sSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);	
+				        }
+				        // ok, last chance, perhaps there was no span yet, so we have to create one
+				        if (sSpan == null){
+					        EList<SToken> sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
+					        // TODO test if the beginning and end of the sNewTokens fits the elan annotation begin and ending, use the function
+					        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
+					        newSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);
+				        }
 					}
 				}
 			}
@@ -299,7 +291,7 @@ public class Elan2SaltMapper
 		for (Object annoObj : smallestTier.getAnnotations()){
 			Annotation anno = (Annotation) annoObj;
 			String name = smallestTier.getName();
-			String value = anno.getValue().trim();
+			String value = anno.getValue();
 
 			// get the begin and end time
 			long beginTime = anno.getBeginTimeBoundary();
@@ -313,6 +305,9 @@ public class Elan2SaltMapper
 
 			// the stop value is the start value plus the length of the value
         	int stop = start + value.length();
+        	if (value.length() == 0 & (endTime - beginTime) != 0){
+        		System.out.println("at " + beginTime + " there is something wrong!");
+        	}
         	
         	// but because we cut something of the primary text (the amount in offset) we have to add this
         	int corstart = offset + start;
@@ -347,80 +342,40 @@ public class Elan2SaltMapper
 				long beginTime = anno.getBeginTimeBoundary();
 				long endTime = anno.getEndTimeBoundary();
 				
-				// if there is something interesting in the value, grab everything you can get about this anno
-				if (!value.trim().isEmpty()){
-						try{
-							// get the positions in the primary text
-							int beginChar = time2char.get(beginTime);
-							int endChar = time2char.get(endTime);
-							
-							// create a sequence that we can use to search for a related token
-					        SDataSourceSequence sequence= SaltFactory.eINSTANCE.createSDataSourceSequence();
-					        sequence.setSSequentialDS(primaryText);
-					        sequence.setSStart((int) beginChar);
-					        sequence.setSEnd((int) endChar);
-					        
-					        // find the relevant tokens
-					        EList<SToken> sNewTokens = sDocument.getSDocumentGraph().getSTokensBySequence(sequence);
-					        // strip the empty tokens from the beginning or the ending
-					        sNewTokens = stripEmptySTokens(sNewTokens);
-					        // create the span
-					        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
-					        // and add an annotation
-					        // TODO when adding the annotation, pepper gets into a loop, when no annotation, error is produced without consequences
-					        //newSpan.createSAnnotation(NAMESPACE_ELAN, tiername, value);
-					        
-				        	if (lastSSpan!= null)
-				        	{// create SOrderRelation between current and last token (if exists)
-				        		SOrderRelation sOrderRel= SaltFactory.eINSTANCE.createSOrderRelation();
-				        		sOrderRel.setSource(lastSSpan);
-				        		sOrderRel.setSTarget(newSpan);
-				        		sOrderRel.addSType(tiername);
-				        		sDocument.getSDocumentGraph().addSRelation(sOrderRel);
-				        	}// create SOrderRelation between current and last token (if exists)
-			        		lastSSpan = newSpan;
-				        	
-				        }catch (NullPointerException noppes){
-							throw new ELANImporterException("This token could not be annotated: (" + tier.getName() + "), " + value + ", " + beginTime);
-						}
+				// grab everything you can get about this anno
+				try{
+					// get the positions in the primary text
+					int beginChar = time2char.get(beginTime);
+					int endChar = time2char.get(endTime);
 					
+					// create a sequence that we can use to search for a related token
+			        SDataSourceSequence sequence= SaltFactory.eINSTANCE.createSDataSourceSequence();
+			        sequence.setSSequentialDS(primaryText);
+			        sequence.setSStart((int) beginChar);
+			        sequence.setSEnd((int) endChar);
+			        
+			        // find the relevant tokens
+			        EList<SToken> sNewTokens = sDocument.getSDocumentGraph().getSTokensBySequence(sequence);
+			        // create the span
+			        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
+			        // and add an annotation
+			        // TODO when adding the annotation, pepper gets into a loop, when no annotation, error is produced without consequences
+			        //newSpan.createSAnnotation(NAMESPACE_ELAN, tiername, value);
+			        
+		        	if (lastSSpan!= null)
+		        	{// create SOrderRelation between current and last token (if exists)
+		        		SOrderRelation sOrderRel= SaltFactory.eINSTANCE.createSOrderRelation();
+		        		sOrderRel.setSource(lastSSpan);
+		        		sOrderRel.setSTarget(newSpan);
+		        		sOrderRel.addSType(tiername);
+		        		sDocument.getSDocumentGraph().addSRelation(sOrderRel);
+		        	}// create SOrderRelation between current and last token (if exists)
+	        		lastSSpan = newSpan;
+		        	
+		        }catch (NullPointerException noppes){
+						throw new ELANImporterException("This token could not be annotated: (" + tier.getName() + "), " + value + ", " + beginTime);
 				}
 			}
 		}
-	}
-	
-	/**
-	 * Sometimes, a span annotation also includes some empty tokens at the beginning or the ending. It is assumed that this is not wanted,
-	 * so these tokens are stripped away. this creates problems by the recognition of spans when adding annotations
-	 * @param sNewTokens the tokens that were found to be included in the span, but from which we want to strip the first and last empty tokens
-	 * @return the stripped down elist
-	 */
-	private EList<SToken> stripEmptySTokens(EList<SToken> sNewTokens) {
-		String primtext = sDocument.getSDocumentGraph().getSTextualDSs().get(0).getSText();
-		for (int i = 0; i < sNewTokens.size(); i++){
-    		EList<STYPE_NAME> rels= new BasicEList<STYPE_NAME>();
-    		rels.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
-    		EList<SDataSourceSequence> sequences= sDocument.getSDocumentGraph().getOverlappedDSSequences(sNewTokens.get(i), rels);
-    		String check = primtext.substring(sequences.get(0).getSStart(), sequences.get(0).getSEnd());
-    		if ( check.trim().isEmpty() ) {
-    			sNewTokens.remove(i);
-    		}
-    		if (!check.trim().isEmpty()){
-    			break;
-    		}
-		}
-		for (int i = sNewTokens.size() - 1; i >= 0; i--){
-			EList<STYPE_NAME> rels= new BasicEList<STYPE_NAME>();
-    		rels.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
-    		EList<SDataSourceSequence> sequences= sDocument.getSDocumentGraph().getOverlappedDSSequences(sNewTokens.get(i), rels);
-    		String check = primtext.substring(sequences.get(0).getSStart(), sequences.get(0).getSEnd());
-    		if ( check.trim().isEmpty() ) {
-    			sNewTokens.remove(i);
-    		}
-    		if (!check.trim().isEmpty()){
-    			break;
-    		}
-		}
-		return sNewTokens;
 	}
 }
