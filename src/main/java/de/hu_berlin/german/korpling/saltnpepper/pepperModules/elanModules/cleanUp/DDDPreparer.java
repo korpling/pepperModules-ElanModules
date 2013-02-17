@@ -118,7 +118,7 @@ public class DDDPreparer {
 				// make sure the characters are a single character, or a space
 				if (tierName.equals("Referenztext B")){
 					String newValue = annoValue.trim();
-					if (newValue.isEmpty()){
+					if (newValue.isEmpty() | newValue == null){
 						newValue = " ";
 					}
 					anno.setValue(newValue);
