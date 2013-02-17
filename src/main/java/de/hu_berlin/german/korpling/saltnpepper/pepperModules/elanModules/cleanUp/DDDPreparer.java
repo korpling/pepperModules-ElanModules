@@ -112,42 +112,27 @@ public class DDDPreparer {
 					if ( annoValue.trim().length() > 1 & (annoValue.startsWith("-") | annoValue.endsWith("-"))){
 						String newValue = annoValue.replaceAll("\\b-", "").replaceAll("-\\b", "");
 						anno.setValue(newValue);
-						log = log + ("WARNING: " + fin + ":" + 
-								tierName + ":" + 
-								Milliseconds2HumanReadable(beginTime) + ":" + 
-								Milliseconds2HumanReadable(endTime) + ":" + 
-								annoValue.trim() + 
-								" | removed a minus character at beginning or ending, this might be an error\n");
 					}
 				}
 
 				// make sure the characters are a single character, or a space
 				if (tierName.equals("Referenztext B")){
-					if ( annoValue.length() > 1 | annoValue.length() == 0){
-						String newValue = annoValue.trim();
-						if (newValue.isEmpty()){
-							newValue = " ";
-						}
-						anno.setValue(newValue);
-						log = log + ("CHANGE: " + fin + ":" + 
-								tierName + ":" + 
-								Milliseconds2HumanReadable(beginTime) + ":" + 
-								Milliseconds2HumanReadable(endTime) + ":" + 
-								annoValue.trim() + 
-								" | optimized character value to be exactly size 1\n");
+					String newValue = annoValue.trim();
+					if (newValue.isEmpty()){
+						newValue = " ";
 					}
+					anno.setValue(newValue);
 				}
 				
 				// notify of [] at the beginning or ending of annotations
 				if (annoValue.contains("[") | annoValue.contains("]")){
 					String newValue = annoValue.replace("[", "").replace("]", "");
 					anno.setValue(newValue);
-					log = log + ("CHANGE: " + fin + ":" + 
-							tierName + ":" + 
-							Milliseconds2HumanReadable(beginTime) + ":" + 
-							Milliseconds2HumanReadable(endTime) + ":" + 
-							annoValue.trim() + 
-							" | removed a [ or ] character at beginning or ending, this might be an error\n");
+				}
+				
+				// remove annos with identical start and end time
+				if (anno.getBeginTimeBoundary() == anno.getEndTimeBoundary()){
+					tier.removeAnnotation(anno);
 				}
 			}
 		}
