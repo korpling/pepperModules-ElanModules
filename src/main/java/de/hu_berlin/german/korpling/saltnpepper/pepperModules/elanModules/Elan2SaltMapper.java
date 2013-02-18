@@ -243,7 +243,6 @@ public class Elan2SaltMapper
 				        }
 				        // ok, last chance, perhaps there was no span yet, so we have to create one
 				        if (sSpan == null){
-				        	System.out.println("Creating a new SSpan. This is weird. At: " + beginTime);
 					        EList<SToken> sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
 					        // TODO test if the beginning and end of the sNewTokens fits the elan annotation begin and ending, use the function
 					        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
@@ -323,7 +322,7 @@ public class Elan2SaltMapper
         	primtextchangeable = primtextchangeable.substring(stop);
 
         	// create the token
-        	sDocument.getSDocumentGraph().createSToken(primaryText, corstart, corstop);
+        	SToken newSToken = sDocument.getSDocumentGraph().createSToken(primaryText, corstart, corstop);
 		}
 			
 		// now make arching spans for the other maintiers
@@ -332,7 +331,6 @@ public class Elan2SaltMapper
 			System.out.println("making spans for maintier: " + tier.getName());
 			
 			// and go through the individual annotations
-			SSpan lastSSpan = null;
 			for (Object segObj : tier.getAnnotations()){
 				Annotation anno = (Annotation) segObj;
 				String value = anno.getValue();
@@ -357,17 +355,20 @@ public class Elan2SaltMapper
 			        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
 			        // and add an annotation
 			        // TODO when adding the annotation, pepper gets into a loop, when no annotation, error is produced without consequences
-			        //newSpan.createSAnnotation(NAMESPACE_ELAN, tiername, value);
-			        
-		        	if (lastSSpan!= null)
-		        	{// create SOrderRelation between current and last token (if exists)
-		        		SOrderRelation sOrderRel= SaltFactory.eINSTANCE.createSOrderRelation();
-		        		sOrderRel.setSource(lastSSpan);
-		        		sOrderRel.setSTarget(newSpan);
-		        		sOrderRel.addSType(tiername);
-		        		sDocument.getSDocumentGraph().addSRelation(sOrderRel);
-		        	}// create SOrderRelation between current and last token (if exists)
-	        		lastSSpan = newSpan;
+			        newSpan.createSAnnotation(NAMESPACE_ELAN, tiername, value);
+			        // also create an SToken
+//		        	SToken newSToken = sDocument.getSDocumentGraph().createSToken(primaryText, beginChar, endChar);
+//
+//			        
+//		        	if (lastSToken!= null)
+//		        	{// create SOrderRelation between current and last token (if exists)
+//		        		SOrderRelation sOrderRel= SaltFactory.eINSTANCE.createSOrderRelation();
+//		        		sOrderRel.setSource(lastSToken);
+//		        		sOrderRel.setSTarget(newSToken);
+//		        		sOrderRel.addSType(tiername);
+//		        		sDocument.getSDocumentGraph().addSRelation(sOrderRel);
+//		        	}// create SOrderRelation between current and last token (if exists)
+//	        		lastSToken = newSToken;
 		        	
 		        }catch (NullPointerException noppes){
 						throw new ELANImporterException("This token could not be annotated: (" + tier.getName() + "), " + value + ", " + beginTime);
