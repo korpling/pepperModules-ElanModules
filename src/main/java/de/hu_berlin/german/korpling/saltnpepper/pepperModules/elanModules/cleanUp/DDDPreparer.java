@@ -30,9 +30,8 @@ public class DDDPreparer {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		
 		//get properties file
-		FileInputStream in = new FileInputStream("/home/tom/DDDcorpora/heliand-settings.txt");
+		FileInputStream in = new FileInputStream("/home/tom/DDDcorpora/Heliand/heliand.bearbeitung2public.properties");
 		Properties prop = new Properties();
 		prop.load(new InputStreamReader(in, "UTF-8"));
 		
@@ -43,6 +42,8 @@ public class DDDPreparer {
 	}
 		
 	public static void prepare(String fname, Properties prop){
+		// TODO implement time correction from python script in java
+		
 		// parse the Elan file
 		eaf = new TranscriptionImpl(prop.getProperty("input") + "/" + fname);
 		System.out.println("working on " + fname);
