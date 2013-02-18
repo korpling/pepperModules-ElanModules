@@ -93,7 +93,7 @@ public class ElanImporterMain
 		for (int i = 0; i < listOfFiles.length; i++){ 
 			if (listOfFiles[i].isFile()){
 				files = listOfFiles[i].getName();
-				if (files.endsWith(".eaf") || files.endsWith(".EAF")){
+				if (files.endsWith("(1).eaf") || files.endsWith("(1).EAF")){
 					out.add(files);
 				}
 		    }
@@ -101,7 +101,7 @@ public class ElanImporterMain
 		return out;
 	}
 	
-	public static String tmpPathName= "/home/tom/DDDcorpora/salt-public/Heliand";
+	public static String tmpPathName= "/home/tom/DDDcorpora/Heliand/salt";
 		
 	public static String getHello()
 	{
