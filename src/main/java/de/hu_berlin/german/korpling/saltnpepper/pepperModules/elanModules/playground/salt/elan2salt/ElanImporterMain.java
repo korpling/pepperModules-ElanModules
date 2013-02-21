@@ -93,7 +93,7 @@ public class ElanImporterMain
 		for (int i = 0; i < listOfFiles.length; i++){ 
 			if (listOfFiles[i].isFile()){
 				files = listOfFiles[i].getName();
-				if (files.endsWith("(1).eaf") || files.endsWith("(1).EAF")){
+				if (files.endsWith(".eaf") || files.endsWith("(1).EAF")){
 					out.add(files);
 				}
 		    }
@@ -101,7 +101,7 @@ public class ElanImporterMain
 		return out;
 	}
 	
-	public static String tmpPathName= "/home/tom/DDDcorpora/Heliand/salt";
+	public static String tmpPathName= "/home/tom/DDDcorpora/Heliand/salt/";
 		
 	public static String getHello()
 	{
@@ -174,20 +174,6 @@ public class ElanImporterMain
 				System.out.println("OK");
 			}//store salt project to tmp path
 			
-/*			{//load salt project from tmp path
-				System.out.print("load salt project from tmp path ('"+tmpPath.getAbsolutePath()+"')...");
-				saltProject= SaltFactory.eINSTANCE.createSaltProject();
-				saltProject.loadSaltProject(URI.createFileURI(tmpPath.getAbsolutePath()));
-				System.out.println("OK");
-			}//load salt project from tmp path
-			
-			{//store salt project in DOT format
-				System.out.print("store dot representation of salt project to tmp path ('"+tmpPath.getAbsolutePath()+"\\DOT')...");
-				URI uri = URI.createFileURI(tmpPath.getAbsolutePath()+"/DOT");
-				saltProject.saveSaltProject_DOT(uri);
-				System.out.println("OK");
-			}//store salt project in DOT format
-*/			
 			System.out.println();
 		}
 		catch (Exception e) {
