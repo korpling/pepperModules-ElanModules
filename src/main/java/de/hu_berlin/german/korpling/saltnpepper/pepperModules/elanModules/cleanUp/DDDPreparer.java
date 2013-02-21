@@ -5,12 +5,16 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Vector;
 import java.awt.List;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 
@@ -31,7 +35,7 @@ public class DDDPreparer {
 	 */
 	public static void main(String[] args) throws Exception {
 		//get properties file
-		FileInputStream in = new FileInputStream("/home/tom/DDDcorpora/Heliand/heliand.bearbeitung2public.properties");
+		FileInputStream in = new FileInputStream("/home/tom/DDDcorpora/Heliand/heliand-bearbeitung2public.properties");
 		Properties prop = new Properties();
 		prop.load(new InputStreamReader(in, "UTF-8"));
 		
@@ -43,6 +47,7 @@ public class DDDPreparer {
 		
 	public static void prepare(String fname, Properties prop){
 		// TODO implement time correction from python script in java
+		correctTimeSlots(prop.getProperty("input") + "/" + fname);
 		
 		// parse the Elan file
 		eaf = new TranscriptionImpl(prop.getProperty("input") + "/" + fname);
@@ -56,7 +61,7 @@ public class DDDPreparer {
 		
 		// create the reference tier "tok" on the basis of a given tier
 		TierImpl tierTok = (TierImpl) eaf.getTierWithId(prop.getProperty("tok"));
-		tierTok.setName("tok");
+		tierTok.setName("segm");
 		
 		// create the txt tier which holds the actual words
 		createTxtTier(prop.getProperty("txt"));
@@ -84,6 +89,54 @@ public class DDDPreparer {
 		}
 	}
 	
+	private static void correctTimeSlots(String fnameIn) {
+		try{
+			FileInputStream fstream = new FileInputStream(fnameIn);
+			// Get the object of DataInputStream
+			DataInputStream in = new DataInputStream(fstream);
+			BufferedReader br = new BufferedReader(new InputStreamReader(in));
+			String strLine;
+			StringBuffer newElan = new StringBuffer();
+			//Read File Line By Line
+			while ((strLine = br.readLine()) != null)   {
+				String regex = new String("TIME_VALUE=");
+				if (strLine.contains(regex) == true){
+					Pattern MY_PATTERN = Pattern.compile("TIME_VALUE=\"([0123456789]+?)\"");
+					Matcher m = MY_PATTERN.matcher(strLine);
+					while (m.find()) {
+						int timevalue = Integer.parseInt( m.group(1) );
+						int newtimevalue = -1;
+						int dif = timevalue % 200;
+						String replace = null;
+						if (dif > 100){
+							newtimevalue = timevalue + (200 - dif);
+						    replace = ("TIME_VALUE=\"" + newtimevalue + "\"");
+						}
+						if (dif <= 100){
+						   	newtimevalue = timevalue - dif;
+						  	replace = ("TIME_VALUE=\"" + newtimevalue + "\"");
+						}
+						if (replace != null){
+							String find = new String("TIME_VALUE=\"" + timevalue + "\"");
+							newElan.append( strLine.replace(find, replace) + "\n" );
+						}
+					}
+				}
+				if (!strLine.contains(regex)){
+					newElan.append( strLine + "\n" );
+				}
+			}
+			//Close the input stream	
+			in.close();
+			
+			FileUtils.writeStringToFile(new File(fnameIn), newElan.toString());
+			
+			
+		}catch (Exception e){//Catch exception if any
+			System.err.println("Error: " + e.getMessage());
+		}
+	}
+		
 	private static void reportIssues(String fin){
 		Vector<TierImpl> tiers = eaf.getTiers();
 		for (TierImpl tier : tiers){
