@@ -1,12 +1,16 @@
 package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import mpi.eudico.server.corpora.clom.Annotation;
+import mpi.eudico.server.corpora.clom.Tier;
+import mpi.eudico.server.corpora.clom.TimeSlot;
 import mpi.eudico.server.corpora.clomimpl.abstr.AbstractAnnotation;
 import mpi.eudico.server.corpora.clomimpl.abstr.TierImpl;
+import mpi.eudico.server.corpora.clomimpl.abstr.TimeSlotImpl;
 import mpi.eudico.server.corpora.clomimpl.abstr.TranscriptionImpl;
 
 import org.eclipse.emf.common.util.BasicEList;
@@ -17,11 +21,11 @@ import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperModul
 import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.exceptions.ELANImporterException;
 import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.playground.salt.elan2salt.ElanImporterMain;
 import de.hu_berlin.german.korpling.saltnpepper.salt.SaltFactory;
+import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.helper.modules.SDocumentDataEnricher;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpus;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SDocument;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SDataSourceSequence;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SDocumentGraph;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SOrderRelation;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SSpan;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STYPE_NAME;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STextualDS;
@@ -97,18 +101,15 @@ public class Elan2SaltMapper
 	public void mapSDocument()
 	{
 		// set the segmentation tiers
-		SEGMENTATION_TIERNAMES.add("tok");
+		SEGMENTATION_TIERNAMES.add("segm");
 		SEGMENTATION_TIERNAMES.add("txt");
 		SEGMENTATION_TIERNAMES.add("character");
 		
 		// which tiers from elan should be ignored
-		IGNORE_TIERNAMES.add("tok");
+		IGNORE_TIERNAMES.add("segm");
 		IGNORE_TIERNAMES.add("txt");
 		IGNORE_TIERNAMES.add("character");
 		IGNORE_TIERNAMES.add("vergleich");
-		IGNORE_TIERNAMES.add("clause");
-		IGNORE_TIERNAMES.add("chapter");
-		IGNORE_TIERNAMES.add("verse");
 				
 		// set the elan document
 		// TODO is this the nicest way of getting the elan path?
@@ -140,7 +141,6 @@ public class Elan2SaltMapper
 			throw new ELANImporterException("Cannot create example, because the given sDocument does not contain an SDocumentGraph.");
 		STextualDS sTextualDS = null;
 		{//creating the primary text
-			// TODO properties
 			TierImpl primtexttier = (TierImpl) elan.getTierWithId(PRIMARY_TEXT_TIER_NAME);
 			StringBuffer primText = new StringBuffer();
 			for (Object obj : primtexttier.getAnnotations()){
@@ -244,9 +244,16 @@ public class Elan2SaltMapper
 				        // ok, last chance, perhaps there was no span yet, so we have to create one
 				        if (sSpan == null){
 					        EList<SToken> sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
-					        // TODO test if the beginning and end of the sNewTokens fits the elan annotation begin and ending, use the function
-					        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
-					        newSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);
+
+					        EList<STYPE_NAME> rels= new BasicEList<STYPE_NAME>();
+			        		rels.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
+			        		
+			        		int firstTokenStart = sDocument.getSDocumentGraph().getOverlappedDSSequences(sNewTokens.get(0), rels).get(0).getSStart();
+			        		int lastTokenEnd = sDocument.getSDocumentGraph().getOverlappedDSSequences(sNewTokens.get(sNewTokens.size()-1), rels).get(0).getSEnd();
+			        		if (firstTokenStart == beginChar & lastTokenEnd == endChar){
+			        			SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
+			        			newSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);
+			        		}
 				        }
 					}
 				}
@@ -256,6 +263,7 @@ public class Elan2SaltMapper
 	
 	// TODO this can probably be captured by STimeline?
 	protected Map<Long,Integer> time2char = new HashMap<Long,Integer>();
+	protected Map<Integer,Long> char2time = new HashMap<Integer,Long>();
 	
 	/**
 	 * function to go through the elan maintiers and set salt tokens for the segmentations in these tiers
@@ -283,6 +291,7 @@ public class Elan2SaltMapper
 		int offset = 0;
 		
 		// go through the annotations of the tier with the smallest subdivision
+		ArrayList<Integer> startStopValues = new ArrayList<Integer>();
 		for (Object annoObj : smallestTier.getAnnotations()){
 			Annotation anno = (Annotation) annoObj;
 			String name = smallestTier.getName();
@@ -299,13 +308,16 @@ public class Elan2SaltMapper
 			}
 
 			// the stop value is the start value plus the length of the value
+			// TODO perhaps this is an unnecessary assumption that can be superseded by using STimeline?
         	int stop = start + value.length();
         	if (value.length() == 0 & (endTime - beginTime) != 0){
+        		// kind of error: if the value of the annotation is zero, but the endtime minus begintime is not zero, then something is wrong
+        		// TODO turn this into an error, and actually it will not occur anymore with STimeline
         		System.out.println("at " + beginTime + " there is something wrong!");
         	}
         	
         	// but because we cut something of the primary text (the amount in offset) we have to add this
-        	int corstart = offset + start;
+       		int corstart = offset + start;
         	int corstop = offset + stop;
         	
         	// we keep a map of beginTimes and beginChars, and of endTimes and endChars
@@ -316,16 +328,76 @@ public class Elan2SaltMapper
         	if (!time2char.containsKey(endTime)){
         		time2char.put(endTime, corstop);
         	}
+
+        	if (!char2time.containsKey(corstart)){
+        		char2time.put(corstart, beginTime);
+        	}
+        	if (!char2time.containsKey(corstop)){
+        		char2time.put(corstop, endTime);
+        	}
         	
         	// update the offset and primary text
         	offset = offset + stop;
         	primtextchangeable = primtextchangeable.substring(stop);
-
-        	// create the token
-        	SToken newSToken = sDocument.getSDocumentGraph().createSToken(primaryText, corstart, corstop);
+        	
+        	SToken nt = null;
+        	// check if this segment has a starting anno somewhere in the elan model
+        	boolean endToken = false;
+        	for (Tier tierabstr : (Collection<Tier>) elan.getTiers()){
+        		TierImpl tier = (TierImpl) tierabstr;
+        		Annotation curAnno = tier.getAnnotationAtTime(beginTime);
+        		if (curAnno != null & !tier.getName().equals(minimalTierName)){
+        			if (curAnno.getEndTimeBoundary() == endTime){
+        				endToken = true;
+        			}
+        		}
+        	}
+        	boolean startToken = false;
+        	for (Tier tierabstr : (Collection<Tier>) elan.getTiers()){
+        		TierImpl tier = (TierImpl) tierabstr;
+        		Annotation curAnno = tier.getAnnotationAtTime(beginTime);
+        		if (curAnno != null & !tier.getName().equals(minimalTierName)){
+        			if (curAnno.getBeginTimeBoundary() == beginTime){
+        				startToken = true;
+        			}
+        		}
+        	}
+        	// if an anno ends at this segment, but no anno starts here, then that means that the previous and current segments have to form a token
+        	if (endToken == true & startToken == false){
+        		startStopValues.add(corstart);
+        		startStopValues.add(corstop);
+        		nt = sDocument.getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
+        		startStopValues.removeAll(startStopValues);
+        	}
+        	
+        	// if an anno starts here, but nothing ends, then that means that the previous segments have to form a token, and that the current starts a new list
+        	if (endToken == false & startToken == true){
+        		if (startStopValues.size() > 0){
+        			sDocument.getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
+        		}
+        		startStopValues.removeAll(startStopValues);
+        		startStopValues.add(corstart);
+        		startStopValues.add(corstop);
+        	}
+        	
+        	// if an anno starts and stops here, then the previous segments become a token, the current segments becomes a token, and the list is resetted
+        	if (endToken == true & startToken == true){
+        		if (startStopValues.size() > 0){
+        			sDocument.getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
+        		}
+        		sDocument.getSDocumentGraph().createSToken(primaryText, corstart, corstop);
+        		startStopValues.removeAll(startStopValues);
+        	}
+        	
+        	// if no anno ends here, then this segment can be safely added to the list without further action
+        	if (endToken == false & startToken == false){
+        		startStopValues.add(corstart);
+        		startStopValues.add(corstop);
+        	}        	
 		}
 			
 		// now make arching spans for the other maintiers
+		maintiers.remove(minimalTierName);
 		for (String tiername : maintiers){
 			TierImpl tier = (TierImpl) this.getElanModel().getTierWithId(tiername);
 			System.out.println("making spans for maintier: " + tier.getName());
@@ -338,7 +410,6 @@ public class Elan2SaltMapper
 				long endTime = anno.getEndTimeBoundary();
 				
 				// grab everything you can get about this anno
-				try{
 					// get the positions in the primary text
 					int beginChar = time2char.get(beginTime);
 					int endChar = time2char.get(endTime);
@@ -348,7 +419,7 @@ public class Elan2SaltMapper
 			        sequence.setSSequentialDS(primaryText);
 			        sequence.setSStart((int) beginChar);
 			        sequence.setSEnd((int) endChar);
-			        
+			        			        
 			        // find the relevant tokens
 			        EList<SToken> sNewTokens = sDocument.getSDocumentGraph().getSTokensBySequence(sequence);
 			        // create the span
@@ -356,23 +427,9 @@ public class Elan2SaltMapper
 			        // and add an annotation
 			        // TODO when adding the annotation, pepper gets into a loop, when no annotation, error is produced without consequences
 			        newSpan.createSAnnotation(NAMESPACE_ELAN, tiername, value);
-			        // also create an SToken
-//		        	SToken newSToken = sDocument.getSDocumentGraph().createSToken(primaryText, beginChar, endChar);
-//
-//			        
-//		        	if (lastSToken!= null)
-//		        	{// create SOrderRelation between current and last token (if exists)
-//		        		SOrderRelation sOrderRel= SaltFactory.eINSTANCE.createSOrderRelation();
-//		        		sOrderRel.setSource(lastSToken);
-//		        		sOrderRel.setSTarget(newSToken);
-//		        		sOrderRel.addSType(tiername);
-//		        		sDocument.getSDocumentGraph().addSRelation(sOrderRel);
-//		        	}// create SOrderRelation between current and last token (if exists)
-//	        		lastSToken = newSToken;
-		        	
-		        }catch (NullPointerException noppes){
-						throw new ELANImporterException("This token could not be annotated: (" + tier.getName() + "), " + value + ", " + beginTime);
-				}
+
+			        // TODO if orderrelation is to be handled within this module, then add it here
+
 			}
 		}
 	}
