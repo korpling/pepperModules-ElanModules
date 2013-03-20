@@ -9,10 +9,8 @@ import java.util.Map;
 
 import mpi.eudico.server.corpora.clom.Annotation;
 import mpi.eudico.server.corpora.clom.Tier;
-import mpi.eudico.server.corpora.clom.TimeSlot;
 import mpi.eudico.server.corpora.clomimpl.abstr.AbstractAnnotation;
 import mpi.eudico.server.corpora.clomimpl.abstr.TierImpl;
-import mpi.eudico.server.corpora.clomimpl.abstr.TimeSlotImpl;
 import mpi.eudico.server.corpora.clomimpl.abstr.TranscriptionImpl;
 
 import org.eclipse.emf.common.util.BasicEList;
@@ -23,7 +21,6 @@ import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperModul
 import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.exceptions.ELANImporterException;
 import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.playground.salt.elan2salt.ElanImporterMain;
 import de.hu_berlin.german.korpling.saltnpepper.salt.SaltFactory;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.helper.modules.SDocumentDataEnricher;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpus;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SDocument;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SDataSourceSequence;
@@ -37,7 +34,7 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructu
 /**
  * This class maps data coming from the ELAN model to a Salt model.
  * @author Florian Zipser
- *
+ * @author Tom Ruette
  */
 public class Elan2SaltMapper 
 {
@@ -46,8 +43,8 @@ public class Elan2SaltMapper
 	public static final String PRIMARY_TEXT_TIER_NAME="character";
 	public static final List<String> SEGMENTATION_TIERNAMES= Arrays.asList("character", "segm", "txt");
 	public static final List<String> IGNORE_TIERNAMES= Arrays.asList("vergleich");
-	public static final boolean addOrderRelation = new Boolean(false);
-
+	public static final boolean addOrderRelation = new Boolean(true);
+	
 	// properties that I want to keep track of in the whole class, but that are not set initially
 	protected Map<Long,Integer> time2char = new HashMap<Long,Integer>(); // solve this by using STimeline?
 	protected Map<Integer,Long> char2time = new HashMap<Integer,Long>(); // solve this by using STimeline?
@@ -56,7 +53,10 @@ public class Elan2SaltMapper
 	
 	//TODO remove when inheriting from PepperMapper
 	protected SDocument sDocument= null;
-
+	private PepperModuleProperties props=null;
+	protected SCorpus sCorpus= null;
+	protected URI resourceURI= null;
+	
 	//TODO remove when inheriting from PepperMapper
 	public SDocument getSDocument() {
 		return(sDocument);
@@ -66,9 +66,6 @@ public class Elan2SaltMapper
 	public void setSDocument(SDocument sDocument) {
 		this.sDocument= sDocument;
 	}
-
-	//TODO remove when inheriting from PepperMapper
-	protected SCorpus sCorpus= null;
 
 	//TODO remove when inheriting from PepperMapper
 	public SCorpus getSCorpus() {
@@ -81,15 +78,12 @@ public class Elan2SaltMapper
 	}
 
 	//TODO remove when inheriting from PepperMapper
-	protected URI resourceURI= null;
-
-	//TODO remove when inheriting from PepperMapper
 	public URI getResourceURI() {
 		return(resourceURI);
 	}
 	
-	public TranscriptionImpl setElanModel(String fullFilename){
-		return new TranscriptionImpl(fullFilename);
+	public void setElanModel(String fullFilename){
+		this.elan = new TranscriptionImpl(fullFilename);
 	}
 	
 	public TranscriptionImpl getElanModel(){
@@ -105,13 +99,14 @@ public class Elan2SaltMapper
 		this.MINIMAL_SEGMENTATION_TIER_NAME = mINIMAL_SEGMENTATION_TIER_NAME;
 	}
 	
+	public void setDocumentMetaAnnotation(String key, String value){
+		sDocument.createSMetaAnnotation(null, key, value);
+	}
+	
 	//TODO remove when inheriting from PepperMapper
 	public void setResourceURI(URI resourceURI) {
 		this.resourceURI= resourceURI;
 	}
-
-	//TODO remove when inheriting from PepperMapper
-	private PepperModuleProperties props=null;
 
 	//TODO remove when inheriting from PepperMapper
 	public void setProps(PepperModuleProperties props) {
@@ -134,9 +129,8 @@ public class Elan2SaltMapper
 	{		
 		// set the elan document
 		// TODO is this the nicest way of getting the elan path? Probably we can handle this from the superclass with setElanModel
-		String fname = sDocument.getSMetaAnnotation("elan::origFile").getValueString();
-		System.out.println("working on " + fname);
-		this.elan = new TranscriptionImpl(fname);
+		String fname = sDocument.getSMetaAnnotation("origFile").getValueString();
+		setElanModel(fname);
 
 		// create the primary text
 		createPrimaryData(sDocument);
@@ -180,16 +174,16 @@ public class Elan2SaltMapper
 	public void traverseElanDocument(SDocument sDocument){
 		
 		// set the segments for the segmentation tiers
-		createSegmentationForMainTiers(SEGMENTATION_TIERNAMES);
+		createSegmentationForMainTiers();
 		
 		// go through the elan document and add annotations
-		addAnnotations(IGNORE_TIERNAMES);
+		addAnnotations();
 	}
 	
 	/**
 	 * function to go through elan document, and add the elan annos to salt tokens and spans
 	 */
-	public void addAnnotations(List<String> maintiers){
+	public void addAnnotations(){
 		
 		// fetch the primary text
 		STextualDS sTextualDS = this.getSDocument().getSDocumentGraph().getSTextualDSs().get(0);
@@ -282,10 +276,10 @@ public class Elan2SaltMapper
 	 * function to go through the elan maintiers and set salt tokens for the segmentations in these tiers
 	 * @param maintiers the main tiers in elan, for which you want to create salt segmentations
 	 */
-	public void createSegmentationForMainTiers(List<String> mtiers){
+	public void createSegmentationForMainTiers(){
 		
 		// cast mtiers to ArrayList
-		ArrayList<String> maintiers = new ArrayList<String>(mtiers);
+		ArrayList<String> maintiers = new ArrayList<String>(SEGMENTATION_TIERNAMES);
 		
 		// find the tier with the smallest segmentation for the tokens
 		int l = -1;
@@ -326,7 +320,6 @@ public class Elan2SaltMapper
 			}
 
 			// the stop value is the start value plus the length of the value
-			// TODO perhaps this is an unnecessary assumption that can be superseded by using STimeline?
         	int stop = start + value.length();
         	
         	// but because we cut something of the primary text (the amount in offset) we have to add this
@@ -334,7 +327,6 @@ public class Elan2SaltMapper
         	int corstop = offset + stop;
         	
         	// we keep a map of beginTimes and beginChars, and of endTimes and endChars
-        	// TODO this is handled by STimeline?
         	if (!time2char.containsKey(beginTime)){
         		time2char.put(beginTime, corstart);
         	}
