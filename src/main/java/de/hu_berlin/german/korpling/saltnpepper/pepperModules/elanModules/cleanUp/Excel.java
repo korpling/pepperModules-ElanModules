@@ -68,14 +68,15 @@ public class Excel {
 		tiernames.add("M1b DDDTS Beleg");
 		tiernames.add("M2a Flexion Lemma");
 		tiernames.add("M2b Flexion Beleg 1");
-		tiernames.add("M2b Flexion Beleg 2");
-		tiernames.add("M2c Flexion Beleg");
+		tiernames.add("M2c Flexion Beleg 2");
 		
 		// go through tiers
 		Vector<Tier> tiers = eaf.getTiers();
 		for (Tier tier : tiers){
 			TierImpl tierimpl = (TierImpl) tier;
+			System.out.println("working on tier:" + tierimpl.getName());
 			if (tiernames.contains(tierimpl.getName())){
+				System.out.println("\tyes");
 				// go through annotations on tier
 				Vector<AbstractAnnotation> annos = tierimpl.getAnnotations();
 				for (AbstractAnnotation anno : annos){
