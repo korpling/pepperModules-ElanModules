@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Properties;
@@ -35,7 +36,7 @@ public class DDDPreparer {
 	 */
 	public static void main(String[] args) throws Exception {
 		//get properties file
-		FileInputStream in = new FileInputStream("/home/tom/DDDcorpora/Heliand/heliand-bearbeitung2public.properties");
+		FileInputStream in = new FileInputStream("/media/sf_shared_folder/DDDcorpora/test/bearbeitung2public.properties");
 		Properties prop = new Properties();
 		prop.load(new InputStreamReader(in, "UTF-8"));
 		
@@ -46,7 +47,7 @@ public class DDDPreparer {
 	}
 		
 	public static void prepare(String fname, Properties prop){
-		// TODO implement time correction from python script in java
+		// correct the time slots
 		correctTimeSlots(prop.getProperty("input") + "/" + fname);
 		
 		// parse the Elan file
@@ -165,6 +166,7 @@ public class DDDPreparer {
 				if (tierName.equals("Referenztext W")){
 					if ( annoValue.trim().length() > 1 & (annoValue.startsWith("-") | annoValue.endsWith("-"))){
 						String newValue = annoValue.replaceAll("\\b-", "").replaceAll("-\\b", "");
+						newValue = newValue.replaceAll("_$", "_");
 						anno.setValue(newValue);
 					}
 				}
@@ -314,22 +316,41 @@ public class DDDPreparer {
 		long endTime = -1;
 		String value = "";
 		for (AbstractAnnotation sourceAnno : sourceAnnos){
+			System.out.println("current character: '" + sourceAnno.getValue() + "'");
 			if (beginTime < 0){
 				beginTime = sourceAnno.getBeginTimeBoundary();
 			}
 			boolean test = isPunctuation(sourceAnno.getValue().trim());
 			if (!test){
+				if (isPunctuation(value) & !value.isEmpty()){
+					System.out.println("times:" + beginTime + "," + endTime);
+					AlignableAnnotation aa = (AlignableAnnotation) t.createAnnotation(beginTime, sourceAnno.getBeginTimeBoundary());
+					aa.setValue(value);
+					value = "";
+					beginTime = sourceAnno.getBeginTimeBoundary();
+				}
 				value = value + sourceAnno.getValue();
+				System.out.println("\tthis is no punctuation, so appending it to value: '" + value + "'");
 				endTime = sourceAnno.getEndTimeBoundary();
 			}
-			if (test){
-				if (!value.isEmpty()){
+			// if it is punctuation, and it is not a whitespace, create anno at previous endtime
+			System.out.println("\tthe punctuation test says: " + test);
+			System.out.println("\tthe sourceAnno has length: " + sourceAnno.getValue().trim().length());
+			if (test & sourceAnno.getValue().trim().length() > 0){
+				System.out.println("\tthis is punctuation, and no whitespace, so creating anno");
+				if (!value.trim().isEmpty()){
 					AlignableAnnotation aa = (AlignableAnnotation) t.createAnnotation(beginTime, endTime);
 					aa.setValue(value);
 				}
-				if (!sourceAnno.getValue().trim().isEmpty()){
-					AlignableAnnotation aa = (AlignableAnnotation) t.createAnnotation(sourceAnno.getBeginTimeBoundary(), sourceAnno.getEndTimeBoundary());
-					aa.setValue(sourceAnno.getValue());
+				beginTime = sourceAnno.getBeginTimeBoundary();
+				value = sourceAnno.getValue();
+			}
+			// if it is punctuation, but it is actually whitespace, create anno with this endtime
+			if (test & sourceAnno.getValue().trim().isEmpty()){
+				System.out.println("\tthis is punctuation, and also whitespace, so creating anno with whitespace endtime");
+				if (!value.trim().isEmpty()){
+					AlignableAnnotation aa = (AlignableAnnotation) t.createAnnotation(beginTime, sourceAnno.getEndTimeBoundary());
+					aa.setValue(value);
 				}
 				beginTime = -1;
 				value = "";
