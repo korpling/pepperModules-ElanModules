@@ -1,6 +1,7 @@
 package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.cleanUp;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,15 +24,39 @@ import mpi.eudico.server.corpora.clomimpl.abstr.TranscriptionImpl;
 public class Excel {
 	
 	public static void main(String[] args) throws Exception {
+		Collection<String> fnames = getFileNamesInDirectory(args[0]);
+		for (String fname : fnames){
+			excelify(args[0] + fname);
+		}
+	}
+	
+	public static Collection<String> getFileNamesInDirectory(String path){
+		String files;
+		Collection<String> out = new Vector<String>();	
+		File folder = new File(path);
+		File[] listOfFiles = folder.listFiles();
+		System.out.println("there are a number of files in this place: " + path + ", " + listOfFiles.length);
+		for (int i = 0; i < listOfFiles.length; i++){ 
+			if (listOfFiles[i].isFile()){
+				files = listOfFiles[i].getName();
+				if (files.endsWith(".eaf") || files.endsWith("(1).EAF")){
+					out.add(files);
+				}
+		    }
+	    }
+		return out;
+	}
+	
+	public static void excelify(String fname){
 		// this is the map in which everything is stored
 		Map<Long, Map> m = new HashMap<Long, Map>();
 		
 		// get the file to work on
-		String fname = args[0];
 		String fnameout = fname.replace(".eaf", ".csv");
 		
 		// parse the Elan file
 		TranscriptionImpl eaf = new TranscriptionImpl(fname);
+		
 		System.out.println("working on " + fname);
 		
 		// Tiernames that are interesting
@@ -44,6 +69,7 @@ public class Excel {
 		tiernames.add("M2a Flexion Lemma");
 		tiernames.add("M2b Flexion Beleg 1");
 		tiernames.add("M2b Flexion Beleg 2");
+		tiernames.add("M2c Flexion Beleg");
 		
 		// go through tiers
 		Vector<Tier> tiers = eaf.getTiers();
@@ -87,8 +113,7 @@ public class Excel {
 		}
 		
 		try {
-			BufferedWriter out = new BufferedWriter(
-					new FileWriter(fnameout));
+			BufferedWriter out = new BufferedWriter(new FileWriter(fnameout));
 			String outText = sb.toString();
 			out.write(outText);
 			out.close();
