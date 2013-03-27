@@ -41,9 +41,9 @@ public class Elan2SaltMapper
 	// properties to be set, I guess
 	public static final String NAMESPACE_ELAN="elan";
 	public static final String PRIMARY_TEXT_TIER_NAME="character";
-	public static final List<String> SEGMENTATION_TIERNAMES= Arrays.asList("character", "segm", "txt");
-	public static final List<String> IGNORE_TIERNAMES= Arrays.asList("vergleich");
-	public static final boolean addOrderRelation = new Boolean(true);
+	public static final List<String> SEGMENTATION_TIERNAMES= Arrays.asList("character", "txt");
+	public static final List<String> IGNORE_TIERNAMES= Arrays.asList("vergleich", "segm");
+	public static final boolean addOrderRelation = true;
 	
 	// properties that I want to keep track of in the whole class, but that are not set initially
 	protected Map<Long,Integer> time2char = new HashMap<Long,Integer>(); // solve this by using STimeline?
@@ -400,7 +400,7 @@ public class Elan2SaltMapper
         		startStopValues.add(corstop);
         	}        	
         	
-        	if (addOrderRelation == true){
+/*        	if (addOrderRelation){
         		if (lastToken != null){
         			if (newToken != null){
         				SOrderRelation orderRelToken = SaltFactory.eINSTANCE.createSOrderRelation();
@@ -411,7 +411,7 @@ public class Elan2SaltMapper
         			}
 	        	}
     	        lastToken = newToken;
-	        }
+	        }*/
 		}
 			
 		// now make arching spans for the other maintiers
@@ -444,7 +444,7 @@ public class Elan2SaltMapper
 		        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
 
 		        // add the order relation
-		        if (addOrderRelation == true){
+		        if (addOrderRelation){
 		        	if (lastSpan != null){
 		        		SOrderRelation orderRel = SaltFactory.eINSTANCE.createSOrderRelation();
 		        		orderRel.setSSource(lastSpan);
