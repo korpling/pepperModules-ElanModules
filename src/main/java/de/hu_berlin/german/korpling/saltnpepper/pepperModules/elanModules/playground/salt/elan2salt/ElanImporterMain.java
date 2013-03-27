@@ -18,8 +18,13 @@
 package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.playground.salt.elan2salt;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.Collection;
+import java.util.Properties;
 import java.util.Vector;
 
 import org.eclipse.emf.common.util.URI;
@@ -57,21 +62,39 @@ public class ElanImporterMain
 	 * @throws IOException 
 	 * @throws SAXException 
 	 */
-	public static SCorpusGraph createCorpusStructure(SaltProject saltProject, String path) 
+	public static SCorpusGraph createCorpusStructure(SaltProject saltProject, String path, String name) 
 	{
 		SCorpusGraph sCorpGraph= SaltFactory.eINSTANCE.createSCorpusGraph();
 		saltProject.getSCorpusGraphs().add(sCorpGraph);
 		SCorpus sCorpus1= SaltFactory.eINSTANCE.createSCorpus();
-		sCorpus1.setSName("Heliand");
+		System.out.println("Creating corpus structure with name: " + name);
+		sCorpus1.setSName(name);
 		sCorpGraph.addSNode(sCorpus1);
 		
 		SDocument sDoc= null;
 		Collection<String> filenames = getFileNamesInDirectory(path);
+		System.out.println(filenames);
 		
 		for (String filename : filenames){
 			sDoc= SaltFactory.eINSTANCE.createSDocument();
 			sDoc.setSName(filename);
-			sDoc.createSMetaAnnotation("elan", "origFile", path + "/" + filename);
+			sDoc.createSMetaAnnotation(null, "origFile", path + "/" + filename);
+			
+			//get properties file
+/*			FileInputStream in;
+			try {
+				String metafname = path.replaceAll("elan-public", "meta") + "/" + filename.replace(".eaf", ".meta");
+				in = new FileInputStream(metafname);
+				Properties props = new Properties();
+				props.load(new InputStreamReader(in, "UTF-8"));
+				for (Object key : props.keySet()) {
+					sDoc.createSMetaAnnotation(null, (String) key, props.getProperty((String) key));
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+*/			
 			sCorpGraph.addSDocument(sCorpus1, sDoc);
 		}
 		
@@ -88,8 +111,8 @@ public class ElanImporterMain
 		String files;
 		Collection<String> out = new Vector<String>();	
 		File folder = new File(path);
-		File[] listOfFiles = folder.listFiles(); 
-		System.out.println("path: "+ path);
+		File[] listOfFiles = folder.listFiles();
+		System.out.println("there are a number of files in this place: " + path + ", " + listOfFiles.length);
 		for (int i = 0; i < listOfFiles.length; i++){ 
 			if (listOfFiles[i].isFile()){
 				files = listOfFiles[i].getName();
@@ -101,7 +124,6 @@ public class ElanImporterMain
 		return out;
 	}
 	
-	public static String tmpPathName= "/home/tom/DDDcorpora/Heliand/salt/";
 		
 	public static String getHello()
 	{
@@ -144,26 +166,30 @@ public class ElanImporterMain
 
 			{//creating a corpus structure for salt project
 				System.out.print("creating a corpus structure for salt project...");
-				createCorpusStructure(saltProject, path);
+				String corpusname = path.replaceAll("/$", "");
+				System.out.println(corpusname);
+				createCorpusStructure(saltProject, path + "elan-public", corpusname.substring(corpusname.lastIndexOf("/")+1));
 				System.out.println("OK");
 			}//creating a corpus structure for salt project
 
 			{//filling all of the documents in the corpus structure with document structure data
-				System.out.print("filling all of the documents in the corpus structure with document structure data...");
+				System.out.println("filling all of the documents in the corpus structure with document structure data...");
 				//this works, because after createCorpusStructure() was called, only one graph exists in salt project
 				SCorpusGraph sCorpusGraph= saltProject.getSCorpusGraphs().get(0);
 				
 				for (SDocument sDocument: sCorpusGraph.getSDocuments())
-				{//filling all of the documents in the corpus structure with document structure data	
+				{//filling all of the documents in the corpus structure with document structure data
+					System.out.println("working on sdoc: " + sDocument);
 					Elan2SaltMapper mapper = new Elan2SaltMapper();
 					sDocument.setSDocumentGraph(SaltFactory.eINSTANCE.createSDocumentGraph());
-					System.out.println("sdoc meta" + sDocument.getSMetaAnnotations());
 					mapper.setSDocument(sDocument);
 					mapper.mapSDocument();
 				}//filling all of the documents in the corpus structure with document structure data
 				System.out.println("OK");
 			}//filling all of the documents in the corpus structure with document structure data
 			
+			String tmpPathName= path + "salt";
+
 			File tmpPath= new File(tmpPathName);
 			if (!tmpPath.exists())
 				tmpPath.mkdirs();
