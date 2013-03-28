@@ -85,15 +85,45 @@
                             <entry><xref linkend="prop_prop1" endterm="importer_prop1_title"/></entry>
                             <entry>textual value</entry>
                             <entry>optional</entry>
+                            <entry>character</entry>
+                        </row>
+                        <row>
+                            <entry><xref linkend="prop_prop2" endterm="importer_prop2_title"/></entry>
+                            <entry>textual value</entry>
+                            <entry>optional</entry>
+                            <entry/>
+                        </row>
+                        <row>
+                            <entry><xref linkend="prop_prop3" endterm="importer_prop3_title"/></entry>
+                            <entry>textual value</entry>
+                            <entry>optional</entry>
+                            <entry/>
+                        </row>
+                        <row>
+                            <entry><xref linkend="prop_prop4" endterm="importer_prop4_title"/></entry>
+                            <entry>Boolean</entry>
+                            <entry>optional</entry>
                             <entry/>
                         </row>
                     </tbody>
                 </tgroup>
             </table>
             <sect2 xml:id="prop_prop1">
-                <title xml:id="importer_prop1_title">elanImporter.primTierName</title>
-                <para>Determines which main tier is used to be mapped to
-                        <classname>STextualDS</classname> object.</para>
+                <title xml:id="importer_prop1_title">elan.importer.primTextTierName</title>
+                <para>Name of the tier containing the primary text.</para>
+            </sect2>
+            <sect2 xml:id="prop_prop2">
+                <title xml:id="importer_prop2_title">elan.importer.segTierNames</title>
+                <para>Names of the tiers that will be used as segmentation layers.</para>
+            </sect2>
+            <sect2 xml:id="prop_prop3">
+                <title xml:id="importer_prop3_title">elan.importer.ignoreTierNames</title>
+                <para>Names of the tiers that will be ignored.</para>
+            </sect2>
+            <sect2 xml:id="prop_prop4">
+                <title xml:id="importer_prop4_title">elan.importer.addSOrderRelation</title>
+                <para>Deteremines if, this module shall add <classname>SOrderRelations</classname>
+                    to all tokens (segmentation layers).</para>
             </sect2>
         </sect1>
     </chapter>

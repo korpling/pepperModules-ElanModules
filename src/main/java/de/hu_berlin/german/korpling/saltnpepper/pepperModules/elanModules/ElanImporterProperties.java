@@ -17,7 +17,6 @@
  */
 package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
@@ -38,11 +37,6 @@ public class ElanImporterProperties extends PepperModuleProperties
 	public static final String PROP_IGNORE_TIERNAMES=PREFIX+"ignoreTierNames";
 	public static final String PROP_ADD_SORDERRELATION=PREFIX+"addSOrderRelation";
 	
-	
-	public static final List<String> SEGMENTATION_TIERNAMES= Arrays.asList("character", "txt");
-	public static final List<String> IGNORE_TIERNAMES= Arrays.asList("vergleich", "segm");
-	
-	
 	public ElanImporterProperties()
 	{
 		this.addProperty(new PepperModuleProperty<String>(PROP_PRIMARY_TEXT_TIER_NAME, String.class, "Name of the tier containing the primary text.", "character", false));
@@ -58,14 +52,13 @@ public class ElanImporterProperties extends PepperModuleProperties
 	
 	public List<String> getSegmentationTierNames()
 	{
-		List<String> retVal= null;
+		List<String> retVal= new Vector<String>();;
 		String rawNames= (String)this.getProperty(PROP_PRIMARY_TEXT_TIER_NAME).getValue();
 		if (rawNames!= null)
 		{
 			String[] rawNamesArr= rawNames.split(",");
 			if (rawNamesArr!= null)
 			{
-				retVal= new Vector<String>();
 				for (String rawName: rawNamesArr)
 				{
 					retVal.add(rawName.trim());
@@ -78,14 +71,13 @@ public class ElanImporterProperties extends PepperModuleProperties
 	
 	public List<String> getIgnoreTierNames()
 	{
-		List<String> retVal= null;
+		List<String> retVal= new Vector<String>();;
 		String rawNames= (String)this.getProperty(PROP_IGNORE_TIERNAMES).getValue();
 		if (rawNames!= null)
 		{
 			String[] rawNamesArr= rawNames.split(",");
 			if (rawNamesArr!= null)
 			{
-				retVal= new Vector<String>();
 				for (String rawName: rawNamesArr)
 				{
 					retVal.add(rawName.trim());
