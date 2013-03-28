@@ -55,6 +55,7 @@ public class Excel {
 		String fnameout = fname.replace(".eaf", ".csv");
 		
 		// parse the Elan file
+		System.out.println(fname);
 		TranscriptionImpl eaf = new TranscriptionImpl(fname);
 		
 		System.out.println("working on " + fname);
