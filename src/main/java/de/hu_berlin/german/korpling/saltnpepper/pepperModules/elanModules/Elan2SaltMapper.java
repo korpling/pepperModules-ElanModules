@@ -40,12 +40,12 @@ public class Elan2SaltMapper
 {
 	// properties to be set, I guess
 	public static final String NAMESPACE_ELAN="elan";
-	public static final String PRIMARY_TEXT_TIER_NAME="character";
-	public static final List<String> SEGMENTATION_TIERNAMES= Arrays.asList("character", "txt");
-	public static final List<String> IGNORE_TIERNAMES= Arrays.asList("vergleich", "segm");
-	public static final boolean addOrderRelation = true;
+//	public static final String PRIMARY_TEXT_TIER_NAME="character";
+//	public static final List<String> SEGMENTATION_TIERNAMES= Arrays.asList("character", "txt");
+//	public static final List<String> IGNORE_TIERNAMES= Arrays.asList("vergleich", "segm");
+//	public static final boolean addOrderRelation = true;
 	
-	// properties that I want to keep track of in the whole class, but that are not set initially
+	// variables that I want to keep track of in the whole class, but that are not set initially
 	protected Map<Long,Integer> time2char = new HashMap<Long,Integer>(); // solve this by using STimeline?
 	protected Map<Integer,Long> char2time = new HashMap<Integer,Long>(); // solve this by using STimeline?
 	protected String MINIMAL_SEGMENTATION_TIER_NAME = null;
@@ -114,8 +114,8 @@ public class Elan2SaltMapper
 	}
 
 	//TODO remove when inheriting from PepperMapper
-	public PepperModuleProperties getProps() {
-		return props;
+	public ElanImporterProperties getProps() {
+		return (ElanImporterProperties)props;
 	}
 	
 	//TODO set @override
@@ -155,7 +155,7 @@ public class Elan2SaltMapper
 			throw new ELANImporterException("Cannot create example, because the given sDocument does not contain an SDocumentGraph.");
 		STextualDS sTextualDS = null;
 		{//creating the primary text
-			TierImpl primtexttier = (TierImpl) elan.getTierWithId(PRIMARY_TEXT_TIER_NAME);
+			TierImpl primtexttier = (TierImpl) elan.getTierWithId(this.getProps().getPrimTextTierName());
 			StringBuffer primText = new StringBuffer();
 			for (Object obj : primtexttier.getAnnotations()){
 				AbstractAnnotation charAnno = (AbstractAnnotation) obj;
@@ -194,7 +194,7 @@ public class Elan2SaltMapper
 		// go through the tiers in elan
 		for (Object obj : this.getElanModel().getTiers()){
 			TierImpl tier = (TierImpl) obj;
-			if (!tier.getName().equals(MINIMAL_SEGMENTATION_TIER_NAME) & !IGNORE_TIERNAMES.contains(tier.getName())){ // we do not want to make annotations to the tokens
+			if (!tier.getName().equals(MINIMAL_SEGMENTATION_TIER_NAME) & !this.getProps().getIgnoreTierNames().contains(tier.getName())){ // we do not want to make annotations to the tokens
 				System.out.println(tier.getName());
 		
 				// and go through the individual annotations
@@ -282,7 +282,7 @@ public class Elan2SaltMapper
 	public void createSegmentationForMainTiers(){
 		
 		// cast mtiers to ArrayList
-		ArrayList<String> maintiers = new ArrayList<String>(SEGMENTATION_TIERNAMES);
+		ArrayList<String> maintiers = new ArrayList<String>(this.getProps().getSegmentationTierNames());
 		
 		// find the tier with the smallest segmentation for the tokens
 		int l = -1;
@@ -354,7 +354,7 @@ public class Elan2SaltMapper
         	for (Tier tierabstr : (Collection<Tier>) elan.getTiers()){
         		TierImpl tier = (TierImpl) tierabstr;
         		Annotation curAnno = tier.getAnnotationAtTime(beginTime);
-        		if (curAnno != null & !tier.getName().equals(minimalTierName) & !IGNORE_TIERNAMES.contains(tier.getName())){
+        		if (curAnno != null & !tier.getName().equals(minimalTierName) & !this.getProps().getIgnoreTierNames().contains(tier.getName())){
         			if (curAnno.getEndTimeBoundary() == endTime){
         				endToken = true;
         			}
@@ -364,7 +364,7 @@ public class Elan2SaltMapper
         	for (Tier tierabstr : (Collection<Tier>) elan.getTiers()){
         		TierImpl tier = (TierImpl) tierabstr;
         		Annotation curAnno = tier.getAnnotationAtTime(beginTime);
-        		if (curAnno != null & !tier.getName().equals(minimalTierName) & !IGNORE_TIERNAMES.contains(tier.getName())){
+        		if (curAnno != null & !tier.getName().equals(minimalTierName) & !this.getProps().getIgnoreTierNames().contains(tier.getName())){
         			if (curAnno.getBeginTimeBoundary() == beginTime){
         				startToken = true;
         			}
@@ -447,7 +447,7 @@ public class Elan2SaltMapper
 		        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
 
 		        // add the order relation
-		        if (addOrderRelation){
+		        if (this.getProps().isAddSOrderRelation()){
 		        	if (lastSpan != null){
 		        		SOrderRelation orderRel = SaltFactory.eINSTANCE.createSOrderRelation();
 		        		orderRel.setSSource(lastSpan);

@@ -17,7 +17,12 @@
  */
 package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Vector;
+
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperModuleProperties;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperModuleProperty;
 
 /**
  * Defines the properties to be used for the {@link GenericXMLImporter}. 
@@ -28,8 +33,71 @@ public class ElanImporterProperties extends PepperModuleProperties
 {
 	public static final String PREFIX="elan.importer.";
 	
+	public static final String PROP_PRIMARY_TEXT_TIER_NAME=PREFIX+"primTextTierName";
+	public static final String PROP_SEGMENTATION_TIERNAMES=PREFIX+"segTierNames";
+	public static final String PROP_IGNORE_TIERNAMES=PREFIX+"ignoreTierNames";
+	public static final String PROP_ADD_SORDERRELATION=PREFIX+"addSOrderRelation";
+	
+	
+	public static final List<String> SEGMENTATION_TIERNAMES= Arrays.asList("character", "txt");
+	public static final List<String> IGNORE_TIERNAMES= Arrays.asList("vergleich", "segm");
+	
+	
 	public ElanImporterProperties()
 	{
+		this.addProperty(new PepperModuleProperty<String>(PROP_PRIMARY_TEXT_TIER_NAME, String.class, "Name of the tier containing the primary text.", "character", false));
+		this.addProperty(new PepperModuleProperty<String>(PROP_SEGMENTATION_TIERNAMES, String.class, "Names of the tiers that will be used as segmentation layers.",false));
+		this.addProperty(new PepperModuleProperty<String>(PROP_IGNORE_TIERNAMES, String.class, "Names of the tiers that will be ignored.","character, txt", false));
+		this.addProperty(new PepperModuleProperty<Boolean>(PROP_ADD_SORDERRELATION, Boolean.class, "Deteremines if, this module shall add SOrderRelations to all tokens (segmentation layers).",true, false));
 	}
 	
+	public String getPrimTextTierName()
+	{
+		return((String)this.getProperty(PROP_PRIMARY_TEXT_TIER_NAME).getValue());
+	}
+	
+	public List<String> getSegmentationTierNames()
+	{
+		List<String> retVal= null;
+		String rawNames= (String)this.getProperty(PROP_PRIMARY_TEXT_TIER_NAME).getValue();
+		if (rawNames!= null)
+		{
+			String[] rawNamesArr= rawNames.split(",");
+			if (rawNamesArr!= null)
+			{
+				retVal= new Vector<String>();
+				for (String rawName: rawNamesArr)
+				{
+					retVal.add(rawName.trim());
+				}
+			}
+			
+		}
+		return(retVal);
+	}
+	
+	public List<String> getIgnoreTierNames()
+	{
+		List<String> retVal= null;
+		String rawNames= (String)this.getProperty(PROP_IGNORE_TIERNAMES).getValue();
+		if (rawNames!= null)
+		{
+			String[] rawNamesArr= rawNames.split(",");
+			if (rawNamesArr!= null)
+			{
+				retVal= new Vector<String>();
+				for (String rawName: rawNamesArr)
+				{
+					retVal.add(rawName.trim());
+				}
+			}
+			
+		}
+		return(retVal);
+	}
+	
+	public boolean isAddSOrderRelation()
+	{
+		return((Boolean)this.getProperty(PROP_ADD_SORDERRELATION).getValue());
+	}
 }
