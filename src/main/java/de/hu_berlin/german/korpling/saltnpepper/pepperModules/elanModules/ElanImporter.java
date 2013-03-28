@@ -17,8 +17,7 @@
  */
 package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.component.annotations.Component;
 
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperExceptions.PepperModuleException;
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.CorpusDefinition;
@@ -36,7 +35,6 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SElementId;
  *
  */
 @Component(name="ElanImporterComponent", factory="PepperImporterComponentFactory")
-@Service(value=PepperImporter.class)
 public class ElanImporter extends PepperImporterImpl implements PepperImporter
 {
 	public ElanImporter()

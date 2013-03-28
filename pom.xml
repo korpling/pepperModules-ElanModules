@@ -54,18 +54,16 @@
         <developerConnection>scm:svn:https://korpling.german.hu-berlin.de/svn/saltnpepper/PepperModules/ElanModules/trunk/</developerConnection>
         <url>scm:svn:https://korpling.german.hu-berlin.de/svn/saltnpepper/PepperModules/ElanModules/</url>
     </scm>
-
+	<properties>
+		<elan.version>4.5.1b</elan.version>
+	</properties>
+	
     <dependencies>
         <!-- mvn install:install-file -Dfile=.\lib\elan-4.5.1b.jar -DgroupId=nl.mpi -DartifactId=elan -Dversion=4.5.1b -Dpackaging=jar -->
         <dependency>
             <groupId>nl.mpi</groupId>
             <artifactId>elan</artifactId>
-            <version>4.5.1b</version>
-        </dependency>
-        <dependency>
-            <groupId>nl.mpi.annot.search</groupId>
-            <artifactId>mfsearch</artifactId>
-            <version>1.5</version>
+            <version>${elan.version}</version>
         </dependency>
     </dependencies>
     <build>
@@ -73,7 +71,7 @@
             <!-- start: Plugin for automatic releasing -->
             <plugin>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>2.1</version>
+                <version>${maven-release-plugin.version}</version>
                 <configuration>
                     <tagBase>
                         https://korpling.german.hu-berlin.de/svn/saltnpepper/PepperModules/ElanModules/tags/ </tagBase>
@@ -88,7 +86,7 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <version>2.1.0</version>
+                <version>${maven-bundle-plugin.version}</version>
                 <extensions>true</extensions>
                 <executions>
                     <execution>
@@ -99,20 +97,20 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <manifestLocation>${basedir}/META-INF</manifestLocation>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <manifestLocation>${META-INF}</manifestLocation>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                     <instructions>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Bundle-SymbolicName>${project.groupId}.${project.artifactId};singleton:=true</Bundle-SymbolicName>
                         <Bundle-Version>${project.version}</Bundle-Version>
-                        <Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
-                        <Service-Component>OSGI-INF/${component.descriptor.name}</Service-Component>
+                        <Bundle-RequiredExecutionEnvironment>JavaSE-${java.version}</Bundle-RequiredExecutionEnvironment>
+                        <Service-Component>${allServiceComponents}</Service-Component>
                         <Include-Resource>{maven-resources}, LICENSE, NOTICE</Include-Resource>
                         <Bundle-ClassPath>.,{maven-dependencies},
-                            lib/elan-4.5.1b.jar</Bundle-ClassPath>
+                            lib/elan-${elan.version}.jar</Bundle-ClassPath>
                         <Include-Resource>{maven-resources}, LICENSE, NOTICE,
-                            lib/elan-4.5.1b.jar=lib/elan-4.5.1b.jar</Include-Resource>
+                            lib/elan-${elan.version}.jar=lib/elan-${elan.version}.jar</Include-Resource>
                     </instructions>
                 </configuration>
             </plugin>
