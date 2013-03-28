@@ -129,8 +129,11 @@ public class Elan2SaltMapper
 	{		
 		// set the elan document
 		// TODO is this the nicest way of getting the elan path? Probably we can handle this from the superclass with setElanModel
-		String fname = sDocument.getSMetaAnnotation("origFile").getValueString();
-		setElanModel(fname);
+//		String fname = sDocument.getSMetaAnnotation("origFile").getValueString();
+//		setElanModel(fname);
+		setElanModel(this.getResourceURI().toFileString());
+		if (this.getSDocument().getSDocumentGraph()== null)
+			this.getSDocument().setSDocumentGraph(SaltFactory.eINSTANCE.createSDocumentGraph());
 
 		// create the primary text
 		createPrimaryData(sDocument);

@@ -3,7 +3,6 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>de.hu_berlin.german.korpling.saltnpepper</groupId>
     <artifactId>pepperModules-ElanModules</artifactId>
     <name>${project.groupId}.${project.artifactId}</name>
     <version>1.1.0-SNAPSHOT</version>
@@ -110,20 +109,14 @@
                         <Import-Package>
                         	!com.apple.eawt,
 							!com.apple.eawt.event,
+							!sun.io.*,
 							!com.sun.media.renderer.audio,
 							!com.sun.media.renderer.audio.device,
 							!com.sun.media.renderer.video,
- 							!org.apache.xerces.parsers,
-							!org.apache.xml.serialize,
-							!org.w3c.dom,
+ 							!org.w3c.dom,
 							!org.w3c.dom.bootstrap,
 							!org.w3c.dom.ls,
 							!org.w3c.dom.svg,
-							!org.xml.sax,
-							!org.xml.sax.helpers,
-							!javax.xml.parsers,
-							!javax.xml.transform,
-							!javax.xml.transform.stream,
 							!guk.im,
 							!javax.accessibility,
 							!javax.help,
@@ -178,10 +171,10 @@
 							!quicktime.std.movies.media,
 							!quicktime.util,*</Import-Package>
                         <Bundle-ClassPath>.,{maven-dependencies},
-                            lib/elan-${elan.version}.jar
+                            lib/elan-${elan.version}.jar, lib/xalan-2.4.1.jar, lib/xercesImpl-2.9.0.jar, lib/org.apache.xml.resolver-1.2.0.jar
                         </Bundle-ClassPath>
                         <Include-Resource>{maven-resources}, LICENSE, NOTICE,
-                            lib/elan-${elan.version}.jar=lib/elan-${elan.version}.jar
+                            lib/elan-${elan.version}.jar=lib/elan-${elan.version}.jar, lib/xalan-2.4.1.jar=lib/xalan-2.4.1.jar, lib/xercesImpl-2.9.0.jar=lib/xercesImpl-2.9.0.jar, lib/org.apache.xml.resolver-1.2.0.jar=lib/org.apache.xml.resolver-1.2.0.jar
                          </Include-Resource>
                     </instructions>
                 </configuration>
