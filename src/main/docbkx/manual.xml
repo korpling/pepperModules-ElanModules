@@ -21,10 +21,10 @@
     <preface>
         <title>Foreword</title>
         <para>The intention of this document is first to give a guide to the user of how to use the
-            here mentioned pepper modules and how to utilize a mapping performed by them. Second
+            here mentioned pepper module and how to utilize a mapping performed by it. Second
             this document shall give a closer view in the details of such a mapping in a declarative
             way, to give the user a chance to understand how specific data will be mapped by the
-            presented pepper modules.</para>
+            presented pepper module.</para>
     </preface>
     <chapter>
         <title>Overview</title>
@@ -32,7 +32,7 @@
             single module can be identified via its coordinates (module-name, format-name,
             format-version) also given in <xref linkend="table_overview"/>. You can use these
             coordinates in a pepper workflow description file to identify the modules in a pepper
-            conversion process. A description of how to model a workfloe description file can be
+            conversion process. A description of how to model a workflow description file can be
             found under https://korpling.german.hu-berlin.de/saltnpepper/.</para>
         <table xml:id="table_overview" frame="all">
             <title>pepper modules contained in this project</title>
@@ -60,13 +60,23 @@
         <para>General information about this importer.</para>
         <sect1>
             <title>Mapping to Salt</title>
-            <para>This section shall describe the mapping from the original format to a Salt
-                model.</para>
+            <para>For the moment, only Elan files without a linked media file and that only contain text-based annotations are properly handled. 
+            Moreover, the module has been developed within the framework of one specific project (Deutsch Diachron Digital), which may lead to some unexpected behavior when exposed to alien files.
+            Nonetheless, the development of the mapping has been oriented towards generic functionality. In case of problems, please contact the developer.</para>
+            <para>The first step in the mapping to Salt consists of the creation of a so called STextualDS, which contains the complete text that is going to be annotated.
+            The tier in Elan that holds the text is given by the user in the special properties.</para>
+            <para>The second step in the mapping to Salt consists of creating so-called STokens.
+            These STokens are calculated on the basis of the tier in the list of segmentation-tiers that has the most amount of annotations (Note that this might be an assumption that does not hold for your files).
+            The other tier(s) in the segmentation layer parameter is used to create (a) segmentation layer(s) that contains Salt Spans, which are given SOrderRelations (if wanted).</para>
+            <para>The actual mapping of the Elan annotations to Salt Annotations takes the simple form of a loop in a loop. For every tier in Elan, that tier is considered from left to right (i.e. from beginning to the end).
+            For every encountered Elan annotation on the tier, a corresponding SSpan on the segmentation layer is searched. If an SSpan is found with an identical time slot, the annotation for the current tier is added to the SSpan.
+            If the Elan annotation has no corresponding SSpan, it might be the case that the Elan annotation is a span of SSpans. If that is the case, the Elan annotation is added to this newly created span of SSpans.
+            If the Elan annotation is shorter than all available SSpans, then this might be a subtoken, below the segmentation layer. Since we have all the STokens available, we can simply search for the (group of) SToken(s) that match the length of the Elan Annotation.</para>
         </sect1>
         <sect1>
             <title>Properties</title>
             <para> The table <xref linkend="importer_prop_overview"/> contains an overview of all
-                usable properties to customize the behaviour of this pepper module. The following
+                usable properties to customize the behavior of this pepper module. The following
                 section contains a close description to each single property and describes the
                 resulting differences in the mapping to the salt model.</para>
             <table xml:id="importer_prop_overview" frame="all">
@@ -84,13 +94,13 @@
                         <row>
                             <entry><xref linkend="prop_prop1" endterm="importer_prop1_title"/></entry>
                             <entry>textual value</entry>
-                            <entry>optional</entry>
-                            <entry>character</entry>
+                            <entry>mandatory</entry>
+                            <entry></entry>
                         </row>
                         <row>
                             <entry><xref linkend="prop_prop2" endterm="importer_prop2_title"/></entry>
                             <entry>textual value</entry>
-                            <entry>optional</entry>
+                            <entry>mandatory</entry>
                             <entry/>
                         </row>
                         <row>
@@ -103,27 +113,26 @@
                             <entry><xref linkend="prop_prop4" endterm="importer_prop4_title"/></entry>
                             <entry>Boolean</entry>
                             <entry>optional</entry>
-                            <entry/>
+                            <entry>true</entry>
                         </row>
                     </tbody>
                 </tgroup>
             </table>
             <sect2 xml:id="prop_prop1">
                 <title xml:id="importer_prop1_title">elan.importer.primTextTierName</title>
-                <para>Name of the tier containing the primary text.</para>
+                <para>Name of the tier containing the primary text. If the primary text is split out over multiple segments in Elan, then the values of all segments will be concatenated.</para>
             </sect2>
             <sect2 xml:id="prop_prop2">
                 <title xml:id="importer_prop2_title">elan.importer.segTierNames</title>
-                <para>Names of the tiers that will be used as segmentation layers.</para>
+                <para>Names of the tiers that will be used as segmentation layers. It is possible to only set a single segmentation layer.</para>
             </sect2>
             <sect2 xml:id="prop_prop3">
                 <title xml:id="importer_prop3_title">elan.importer.ignoreTierNames</title>
-                <para>Names of the tiers that will be ignored.</para>
+                <para>Names of the tiers that will be ignored. Sometimes, specific Elan tiers are not needed in another format (e.g. annotator comments), and this parameter allows you to get rid of them.</para>
             </sect2>
             <sect2 xml:id="prop_prop4">
                 <title xml:id="importer_prop4_title">elan.importer.addSOrderRelation</title>
-                <para>Deteremines if, this module shall add <classname>SOrderRelations</classname>
-                    to all tokens (segmentation layers).</para>
+                <para>Determines if, this module shall add <classname>SOrderRelations</classname> to the segmentation layer(s). If only one segmentation layer is provided, no order relations are needed, and they will not be set.</para>
             </sect2>
         </sect1>
     </chapter>
