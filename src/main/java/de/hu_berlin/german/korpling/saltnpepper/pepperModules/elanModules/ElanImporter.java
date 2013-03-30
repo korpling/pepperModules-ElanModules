@@ -62,7 +62,7 @@ public class ElanImporter extends PepperImporterImpl implements PepperImporter
 	{
 		this.setSCorpusGraph(corpusGraph);
 		if (this.getSCorpusGraph()== null)
-			throw new ELANImporterException(this.name+": Cannot start with importing corpus, because salt project isn�t set.");
+			throw new ELANImporterException(this.name+": Cannot start with importing corpus, because salt project is not set.");
 		if (this.getCorpusDefinition()== null)
 			throw new ELANImporterException(this.name+": Cannot start with importing corpus, because no corpus definition to import is given.");
 		if (this.getCorpusDefinition().getCorpusPath()== null)
@@ -108,7 +108,7 @@ public class ElanImporter extends PepperImporterImpl implements PepperImporter
 				mapper.setSDocument(sDocument);
 				URI documentPath= this.documentResourceTable.get(sElementId);
 				if (documentPath== null)
-					throw new ELANImporterException("Cannot retireve a uri for document "+ sElementId);
+					throw new ELANImporterException("Cannot retrieve a uri for document "+ sElementId);
 				mapper.setResourceURI(documentPath);
 				mapper.mapSDocument();
 			}
