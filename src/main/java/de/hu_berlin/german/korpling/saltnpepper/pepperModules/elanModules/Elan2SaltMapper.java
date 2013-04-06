@@ -53,7 +53,7 @@ public class Elan2SaltMapper
 	
 	//TODO remove when inheriting from PepperMapper
 	protected SDocument sDocument= null;
-	private PepperModuleProperties props=null;
+	protected PepperModuleProperties props=null;
 	protected SCorpus sCorpus= null;
 	protected URI resourceURI= null;
 	
@@ -115,7 +115,7 @@ public class Elan2SaltMapper
 
 	//TODO remove when inheriting from PepperMapper
 	public ElanImporterProperties getProps() {
-		return (ElanImporterProperties)props;
+		return (ElanImporterProperties) props;
 	}
 	
 	//TODO set @override
