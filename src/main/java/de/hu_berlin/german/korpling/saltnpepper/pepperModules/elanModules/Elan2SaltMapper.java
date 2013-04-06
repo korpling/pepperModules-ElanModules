@@ -155,7 +155,7 @@ public class Elan2SaltMapper
 			throw new ELANImporterException("Cannot create example, because the given sDocument does not contain an SDocumentGraph.");
 		STextualDS sTextualDS = null;
 		{//creating the primary text
-			TierImpl primtexttier = (TierImpl) elan.getTierWithId(this.getProps().getPrimTextTierName());
+			TierImpl primtexttier = (TierImpl) this.getElanModel().getTierWithId(this.getProps().getPrimTextTierName());
 			StringBuffer primText = new StringBuffer();
 			for (Object obj : primtexttier.getAnnotations()){
 				AbstractAnnotation charAnno = (AbstractAnnotation) obj;
@@ -351,7 +351,7 @@ public class Elan2SaltMapper
         	SToken newToken = null;
         	// check if this segment has a starting anno somewhere in the elan model
         	boolean endToken = false;
-        	for (Tier tierabstr : (Collection<Tier>) elan.getTiers()){
+        	for (Tier tierabstr : (Collection<Tier>) this.getElanModel().getTiers()){
         		TierImpl tier = (TierImpl) tierabstr;
         		Annotation curAnno = tier.getAnnotationAtTime(beginTime);
         		if (curAnno != null & !tier.getName().equals(minimalTierName) & !this.getProps().getIgnoreTierNames().contains(tier.getName())){
@@ -361,7 +361,7 @@ public class Elan2SaltMapper
         		}
         	}
         	boolean startToken = false;
-        	for (Tier tierabstr : (Collection<Tier>) elan.getTiers()){
+        	for (Tier tierabstr : (Collection<Tier>) this.getElanModel().getTiers()){
         		TierImpl tier = (TierImpl) tierabstr;
         		Annotation curAnno = tier.getAnnotationAtTime(beginTime);
         		if (curAnno != null & !tier.getName().equals(minimalTierName) & !this.getProps().getIgnoreTierNames().contains(tier.getName())){
