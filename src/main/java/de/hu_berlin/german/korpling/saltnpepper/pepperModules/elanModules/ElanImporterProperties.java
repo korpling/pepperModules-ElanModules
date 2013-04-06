@@ -42,7 +42,7 @@ public class ElanImporterProperties extends PepperModuleProperties
 		this.addProperty(new PepperModuleProperty<String>(PROP_PRIMARY_TEXT_TIER_NAME, String.class, "Name of the tier containing the primary text.", false));
 		this.addProperty(new PepperModuleProperty<String>(PROP_SEGMENTATION_TIERNAMES, String.class, "Names of the tiers that will be used as segmentation layers.",false));
 		this.addProperty(new PepperModuleProperty<String>(PROP_IGNORE_TIERNAMES, String.class, "Names of the tiers that will be ignored.", false));
-		this.addProperty(new PepperModuleProperty<Boolean>(PROP_ADD_SORDERRELATION, Boolean.class, "Deteremines if, this module shall add SOrderRelations to all tokens (segmentation layers).",true, false));
+		this.addProperty(new PepperModuleProperty<Boolean>(PROP_ADD_SORDERRELATION, Boolean.class, "Determines if, this module shall add SOrderRelations to all tokens (segmentation layers).",true, false));
 	}
 	
 	public String getPrimTextTierName()
