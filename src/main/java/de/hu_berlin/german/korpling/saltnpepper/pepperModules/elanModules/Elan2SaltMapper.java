@@ -109,8 +109,8 @@ public class Elan2SaltMapper
 	}
 
 	//TODO remove when inheriting from PepperMapper
-	public void setProps(PepperModuleProperties props) {
-		this.props = props;
+	public void setProps(PepperModuleProperties pepmodprops) {
+		this.props = pepmodprops;
 	}
 
 	//TODO remove when inheriting from PepperMapper
