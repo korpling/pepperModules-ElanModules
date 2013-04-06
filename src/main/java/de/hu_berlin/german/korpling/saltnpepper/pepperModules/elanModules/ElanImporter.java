@@ -112,7 +112,8 @@ public class ElanImporter extends PepperImporterImpl implements PepperImporter
 					throw new ELANImporterException("Cannot retrieve a uri for document "+ sElementId);
 				mapper.setResourceURI(documentPath);
 				PepperModuleProperties props = new PepperModuleProperties();
-				props.addProperties(this.getSpecialParams());
+				URI specparamsuri = this.getSpecialParams();
+				props.addProperties(specparamsuri);
 				mapper.setProps(props);
 				mapper.mapSDocument();
 			}
