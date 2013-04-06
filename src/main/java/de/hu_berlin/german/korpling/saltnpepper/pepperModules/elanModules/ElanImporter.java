@@ -28,6 +28,7 @@ import org.osgi.service.component.annotations.Component;
 
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperExceptions.PepperModuleException;
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperImporter;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperModuleProperties;
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.impl.PepperImporterImpl;
 import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.exceptions.ELANImporterException;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpus;
@@ -110,6 +111,9 @@ public class ElanImporter extends PepperImporterImpl implements PepperImporter
 				if (documentPath== null)
 					throw new ELANImporterException("Cannot retrieve a uri for document "+ sElementId);
 				mapper.setResourceURI(documentPath);
+				PepperModuleProperties props = new PepperModuleProperties();
+				props.addProperties(specialParams);
+				mapper.setProps(props);
 				mapper.mapSDocument();
 			}
 		}//only if given sElementId belongs to an object of type SDocument or SCorpus
