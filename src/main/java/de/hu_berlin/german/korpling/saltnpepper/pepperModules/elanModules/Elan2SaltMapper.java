@@ -200,7 +200,7 @@ public class Elan2SaltMapper
 				int lastSpanIndex = 0; // variable to speed up some checks below
 				for (Object annoObj : tier.getAnnotations()){
 					Annotation anno = (Annotation) annoObj;
-					String value = anno.getValue().trim().replaceAll("\n", " ").replaceAll("\r", " ");
+					String value = anno.getValue().trim();
 					long beginTime = anno.getBeginTimeBoundary();
 					long endTime = anno.getEndTimeBoundary();
 				
