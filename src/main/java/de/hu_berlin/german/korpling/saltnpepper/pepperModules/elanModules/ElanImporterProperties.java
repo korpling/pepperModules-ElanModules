@@ -53,7 +53,7 @@ public class ElanImporterProperties extends PepperModuleProperties
 	public List<String> getSegmentationTierNames()
 	{
 		List<String> retVal= new Vector<String>();;
-		String rawNames= (String)this.getProperty(PROP_PRIMARY_TEXT_TIER_NAME).getValue();
+		String rawNames= (String)this.getProperty(PROP_SEGMENTATION_TIERNAMES).getValue();
 		if (rawNames!= null)
 		{
 			String[] rawNamesArr= rawNames.split(",");

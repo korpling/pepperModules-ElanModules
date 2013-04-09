@@ -195,7 +195,6 @@ public class Elan2SaltMapper
 		for (Object obj : this.getElanModel().getTiers()){
 			TierImpl tier = (TierImpl) obj;
 			if (!tier.getName().equals(MINIMAL_SEGMENTATION_TIER_NAME) & !this.getProps().getIgnoreTierNames().contains(tier.getName())){ // we do not want to make annotations to the tokens
-				System.out.println(tier.getName());
 		
 				// and go through the individual annotations
 				int lastSpanIndex = 0; // variable to speed up some checks below
@@ -283,6 +282,7 @@ public class Elan2SaltMapper
 		
 		// cast mtiers to ArrayList
 		ArrayList<String> maintiers = new ArrayList<String>(this.getProps().getSegmentationTierNames());
+		System.out.println("maintiers " + maintiers);
 		
 		// find the tier with the smallest segmentation for the tokens
 		int l = -1;
@@ -403,7 +403,7 @@ public class Elan2SaltMapper
         		startStopValues.add(corstop);
         	}        	
         	
-/*        	if (addOrderRelation){
+        	/*if (this.getProps().isAddSOrderRelation() == true){
         		if (lastToken != null){
         			if (newToken != null){
         				SOrderRelation orderRelToken = SaltFactory.eINSTANCE.createSOrderRelation();
@@ -420,6 +420,7 @@ public class Elan2SaltMapper
 		// now make arching spans for the other maintiers
 		maintiers.remove(minimalTierName);
 		SSpan lastSpan = null;
+		System.out.println("now going hrough the remaining maintiers " + maintiers);
 		for (String tiername : maintiers){
 			TierImpl tier = (TierImpl) this.getElanModel().getTierWithId(tiername);
 			System.out.println("making spans for maintier: " + tier.getName());
@@ -447,7 +448,7 @@ public class Elan2SaltMapper
 		        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
 
 		        // add the order relation
-		        if (this.getProps().isAddSOrderRelation()){
+		        if (this.getProps().isAddSOrderRelation() == true){
 		        	if (lastSpan != null){
 		        		SOrderRelation orderRel = SaltFactory.eINSTANCE.createSOrderRelation();
 		        		orderRel.setSSource(lastSpan);
