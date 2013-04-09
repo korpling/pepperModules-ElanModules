@@ -282,7 +282,6 @@ public class Elan2SaltMapper
 		
 		// cast mtiers to ArrayList
 		ArrayList<String> maintiers = new ArrayList<String>(this.getProps().getSegmentationTierNames());
-		System.out.println("maintiers " + maintiers);
 		
 		// find the tier with the smallest segmentation for the tokens
 		int l = -1;
@@ -420,10 +419,8 @@ public class Elan2SaltMapper
 		// now make arching spans for the other maintiers
 		maintiers.remove(minimalTierName);
 		SSpan lastSpan = null;
-		System.out.println("now going hrough the remaining maintiers " + maintiers);
 		for (String tiername : maintiers){
 			TierImpl tier = (TierImpl) this.getElanModel().getTierWithId(tiername);
-			System.out.println("making spans for maintier: " + tier.getName());
 			
 			// and go through the individual annotations
 			for (Object segObj : tier.getAnnotations()){
