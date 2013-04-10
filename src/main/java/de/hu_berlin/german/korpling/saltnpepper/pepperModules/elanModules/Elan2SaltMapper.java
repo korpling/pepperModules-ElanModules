@@ -201,9 +201,13 @@ public class Elan2SaltMapper
 	 */
 	public void addMetaAnnotations() throws IOException{
 		String path = this.getResourceURI().toFileString();
+		// get to the metadata
 		String[] segments = path.split("/");
 		String target = segments[segments.length-2];
-		path = path.replace(target, "meta").replace(".eaf", ".txt");
+		String fname = segments[segments.length-1];
+		path = path.replace(target, "meta");
+		path = path.replace(fname, fname.split("_")[0]);
+		path = path + ".txt";
 		BufferedReader br = new BufferedReader(new FileReader(path));
 		String line;
 		while ((line = br.readLine()) != null) {
@@ -234,7 +238,7 @@ public class Elan2SaltMapper
 		for (Object obj : this.getElanModel().getTiers()){
 			TierImpl tier = (TierImpl) obj;
 			if (!tier.getName().equals(MINIMAL_SEGMENTATION_TIER_NAME) & !this.getProps().getIgnoreTierNames().contains(tier.getName())){ // we do not want to make annotations to the tokens
-		
+				System.out.println("-------------------------> annotations are being added to " + tier.getName());
 				// and go through the individual annotations
 				int lastSpanIndex = 0; // variable to speed up some checks below
 				for (Object annoObj : tier.getAnnotations()){
@@ -333,7 +337,6 @@ public class Elan2SaltMapper
 				MINIMAL_SEGMENTATION_TIER_NAME = minimalTierName;
 			}
 		}
-		
 		// set the tokens for the minimal Tier
 		TierImpl smallestTier = (TierImpl) this.getElanModel().getTierWithId(minimalTierName);
 		STextualDS primaryText = sDocument.getSDocumentGraph().getSTextualDSs().get(0);
@@ -454,7 +457,7 @@ public class Elan2SaltMapper
     	        lastToken = newToken;
 	        }*/
 		}
-			
+
 		// now make arching spans for the other maintiers
 		maintiers.remove(minimalTierName);
 		SSpan lastSpan = null;
