@@ -238,7 +238,6 @@ public class Elan2SaltMapper
 		for (Object obj : this.getElanModel().getTiers()){
 			TierImpl tier = (TierImpl) obj;
 			if (!tier.getName().equals(MINIMAL_SEGMENTATION_TIER_NAME) & !this.getProps().getIgnoreTierNames().contains(tier.getName())){ // we do not want to make annotations to the tokens
-				System.out.println("-------------------------> annotations are being added to " + tier.getName());
 				// and go through the individual annotations
 				int lastSpanIndex = 0; // variable to speed up some checks below
 				for (Object annoObj : tier.getAnnotations()){
