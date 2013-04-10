@@ -1,5 +1,9 @@
 package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -181,6 +185,41 @@ public class Elan2SaltMapper
 		
 		// go through the elan document and add annotations
 		addAnnotations();
+		
+		// if there are meta data in attribute value form in ./meta, add them to the document
+		try {
+			addMetaAnnotations();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * function that searches for attr/val meta annotations and adds them to the sdoc
+	 * @throws IOException 
+	 */
+	public void addMetaAnnotations() throws IOException{
+		String path = this.getResourceURI().toFileString();
+		String[] segments = path.split("/");
+		String target = segments[segments.length-2];
+		path = path.replace(target, "meta").replace(".eaf", ".txt");
+		BufferedReader br = new BufferedReader(new FileReader(path));
+		String line;
+		while ((line = br.readLine()) != null) {
+			String attr = line.split("=")[0];
+			String val = "NA";
+			try{
+				val = line.split("=")[1];
+				if (val.equals("null")){
+					val = "NA";
+				}
+			} catch (ArrayIndexOutOfBoundsException e) {
+				continue;
+			}
+			this.getSDocument().createSMetaAnnotation(null, attr, val);
+		}
+		br.close();
 	}
 	
 	/**
