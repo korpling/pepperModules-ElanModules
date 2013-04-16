@@ -208,6 +208,7 @@ public class Elan2SaltMapper
 		path = path.replace(target, "meta");
 		path = path.replace(fname, fname.split("_")[0]);
 		path = path + ".txt";
+		path = path.replaceAll(".eaf", "");
 		BufferedReader br = new BufferedReader(new FileReader(path));
 		String line;
 		while ((line = br.readLine()) != null) {
