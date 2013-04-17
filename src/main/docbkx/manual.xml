@@ -63,11 +63,17 @@
             <para>For the moment, only Elan files without a linked media file and that only contain text-based annotations are properly handled. 
             Moreover, the module has been developed within the framework of one specific project (Deutsch Diachron Digital), which may lead to some unexpected behavior when exposed to alien files.
             Nonetheless, the development of the mapping has been oriented towards generic functionality. In case of problems, please contact the developer.</para>
-            <para>The first step in the mapping to Salt consists of the creation of a so called STextualDS, which contains the complete text that is going to be annotated.
-            The tier in Elan that holds the text is given by the user in the special properties.</para>
-            <para>The second step in the mapping to Salt consists of creating so-called STokens.
-            These STokens are calculated on the basis of the tier in the list of segmentation-tiers that has the most amount of annotations (Note that this might be an assumption that does not hold for your files).
-            The other tier(s) in the segmentation layer parameter is used to create (a) segmentation layer(s) that contains Salt Spans, which are given SOrderRelations (if wanted).</para>
+            <para>The first step in the mapping to Salt consists of the creation of a so called
+                    <classname>STextualDS</classname>, which contains the complete text that is
+                going to be annotated. The tier in Elan that holds the text is given by the user in
+                the special properties.</para>
+            <para>The second step in the mapping to Salt consists of creating so-called
+                    <classname>STokens</classname>. These <classname>STokens</classname> are
+                calculated on the basis of the tier in the list of segmentation-tiers that has the
+                most amount of annotations (Note that this might be an assumption that does not hold
+                for your files). The other tier(s) in the segmentation layer parameter is used to
+                create (a) segmentation layer(s) that contains Salt Spans, which are given
+                    <classname>SOrderRelations</classname> (if wanted).</para>
             <para>The actual mapping of the Elan annotations to Salt Annotations takes the simple form of a loop in a loop. For every tier in Elan, that tier is considered from left to right (i.e. from beginning to the end).
             For every encountered Elan annotation on the tier, a corresponding SSpan on the segmentation layer is searched. If an SSpan is found with an identical time slot, the annotation for the current tier is added to the SSpan.
             If the Elan annotation has no corresponding SSpan, it might be the case that the Elan annotation is a span of SSpans. If that is the case, the Elan annotation is added to this newly created span of SSpans.
