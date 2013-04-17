@@ -78,6 +78,14 @@ public class Elan2SaltMapper
 	protected SCorpus sCorpus= null;
 	protected URI resourceURI= null;
 	
+	public Map<Long,Integer> getTime2Char() {
+		return(time2char);
+	}
+	
+	public Map<Integer,Long> getChar2Time() {
+		return(char2time);
+	}
+	
 	//TODO remove when inheriting from PepperMapper
 	public SDocument getSDocument() {
 		return(sDocument);
@@ -121,7 +129,7 @@ public class Elan2SaltMapper
 	}
 	
 	public void setDocumentMetaAnnotation(String key, String value){
-		sDocument.createSMetaAnnotation(null, key, value);
+		this.getSDocument().createSMetaAnnotation(null, key, value);
 	}
 	
 	//TODO remove when inheriting from PepperMapper
@@ -187,7 +195,7 @@ public class Elan2SaltMapper
 			// ew.getPrimaryText gets the text from the elan document as a string
 			sTextualDS.setSText(primText.toString());
 			//adding the text to the document-graph
-			sDocument.getSDocumentGraph().addSNode(sTextualDS);
+			this.getSDocument().getSDocumentGraph().addSNode(sTextualDS);
 		}//creating the primary text
 	}
 	
@@ -266,8 +274,8 @@ public class Elan2SaltMapper
 				
 					// TODO this is perhaps better handled by STimeline?
 					// get the positions in the primary text
-					int beginChar = time2char.get(beginTime);
-					int endChar = time2char.get(endTime);
+					int beginChar = this.getTime2Char().get(beginTime);
+					int endChar = this.getTime2Char().get(endTime);
 					
 					// if there is something interesting in the value, grab everything you can get about this anno
 					if (!value.isEmpty()){
@@ -283,7 +291,7 @@ public class Elan2SaltMapper
 			        	// Let's see if there are already some spans in the sDocument that fit the bill
 				        // TODO change this to the more efficient getSSpanBySequence method when Florian fixes the bug					    
 				        // EList<SSpan> sSpans = sDocument.getSDocumentGraph().getSSpanBySequence(sequence);
-			        	EList<SSpan> sSpansInSDoc = sDocument.getSDocumentGraph().getSSpans();
+			        	EList<SSpan> sSpansInSDoc = this.getSDocument().getSDocumentGraph().getSSpans();
 			        	for (int i = lastSpanIndex; i < sSpansInSDoc.size(); i++){ // start at lastspanIndex, because previous spans are not possible
 			        		// init the current span
 			        		SSpan sp = sSpansInSDoc.get(i);
@@ -291,7 +299,7 @@ public class Elan2SaltMapper
 			        		// find the related DSSequence
 			        		EList<STYPE_NAME> rels= new BasicEList<STYPE_NAME>();
 			        		rels.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
-			        		EList<SDataSourceSequence> sequences= sDocument.getSDocumentGraph().getOverlappedDSSequences(sp, rels);
+			        		EList<SDataSourceSequence> sequences= this.getSDocument().getSDocumentGraph().getOverlappedDSSequences(sp, rels);
 			        		
 			        		// grab the primtext part with the elan anno start and end info
 			        		String checkPrimAnno = sTextualDS.getSText().substring(beginChar, endChar).trim();
@@ -320,10 +328,10 @@ public class Elan2SaltMapper
 					        	EList<STYPE_NAME> rels= new BasicEList<STYPE_NAME>();
 					        	rels.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
 					        	
-					        	int firstTokenStart = sDocument.getSDocumentGraph().getOverlappedDSSequences(sNewTokens.get(0), rels).get(0).getSStart();
-					        	int lastTokenEnd = sDocument.getSDocumentGraph().getOverlappedDSSequences(sNewTokens.get(sNewTokens.size()-1), rels).get(0).getSEnd();
+					        	int firstTokenStart = this.getSDocument().getSDocumentGraph().getOverlappedDSSequences(sNewTokens.get(0), rels).get(0).getSStart();
+					        	int lastTokenEnd = this.getSDocument().getSDocumentGraph().getOverlappedDSSequences(sNewTokens.get(sNewTokens.size()-1), rels).get(0).getSEnd();
 					        	if (firstTokenStart == beginChar & lastTokenEnd == endChar){
-					        		SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
+					        		SSpan newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
 					        		newSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);
 					        	}
 					        }
@@ -356,7 +364,7 @@ public class Elan2SaltMapper
 		}
 		// set the tokens for the minimal Tier
 		TierImpl smallestTier = (TierImpl) this.getElanModel().getTierWithId(minimalTierName);
-		STextualDS primaryText = sDocument.getSDocumentGraph().getSTextualDSs().get(0);
+		STextualDS primaryText = this.getSDocument().getSDocumentGraph().getSTextualDSs().get(0);
 	
 		// because we need to calculate the positions of the tokens in the primary text, we need these two things
 		String primtextchangeable = primaryText.getSText();
@@ -386,20 +394,19 @@ public class Elan2SaltMapper
         	// but because we cut something of the primary text (the amount in offset) we have to add this
        		int corstart = offset + start;
         	int corstop = offset + stop;
-        	
         	// we keep a map of beginTimes and beginChars, and of endTimes and endChars
-        	if (!time2char.containsKey(beginTime)){
-        		time2char.put(beginTime, corstart);
+        	if (!this.getTime2Char().containsKey(beginTime)){
+        		this.getTime2Char().put(beginTime, corstart);
         	}
-        	if (!time2char.containsKey(endTime)){
-        		time2char.put(endTime, corstop);
+        	if (!this.getTime2Char().containsKey(endTime)){
+        		this.getTime2Char().put(endTime, corstop);
         	}
 
-        	if (!char2time.containsKey(corstart)){
-        		char2time.put(corstart, beginTime);
+        	if (!this.getChar2Time().containsKey(corstart)){
+        		this.getChar2Time().put(corstart, beginTime);
         	}
-        	if (!char2time.containsKey(corstop)){
-        		char2time.put(corstop, endTime);
+        	if (!this.getChar2Time().containsKey(corstop)){
+        		this.getChar2Time().put(corstop, endTime);
         	}
         	
         	// update the offset and primary text
@@ -432,14 +439,14 @@ public class Elan2SaltMapper
         	if (endToken == true & startToken == false){
         		startStopValues.add(corstart);
         		startStopValues.add(corstop);
-        		newToken = sDocument.getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
+        		newToken = this.getSDocument().getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
         		startStopValues.removeAll(startStopValues);
         	}
         	
         	// if an anno starts here, but nothing ends, then that means that the previous segments have to form a token, and that the current starts a new list
         	if (endToken == false & startToken == true){
         		if (startStopValues.size() > 0){
-        			newToken = sDocument.getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
+        			newToken = this.getSDocument().getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
         		}
         		startStopValues.removeAll(startStopValues);
         		startStopValues.add(corstart);
@@ -449,9 +456,9 @@ public class Elan2SaltMapper
         	// if an anno starts and stops here, then the previous segments become a token, the current segments becomes a token, and the list is resetted
         	if (endToken == true & startToken == true){
         		if (startStopValues.size() > 0){
-        			newToken = sDocument.getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
+        			newToken = this.getSDocument().getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
         		}
-        		newToken = sDocument.getSDocumentGraph().createSToken(primaryText, corstart, corstop);
+        		newToken = this.getSDocument().getSDocumentGraph().createSToken(primaryText, corstart, corstop);
         		startStopValues.removeAll(startStopValues);
         	}
         	
@@ -489,8 +496,8 @@ public class Elan2SaltMapper
 				
 				// grab everything you can get about this anno
 				// get the positions in the primary text
-				int beginChar = time2char.get(beginTime);
-				int endChar = time2char.get(endTime);
+				int beginChar = this.getTime2Char().get(beginTime);
+				int endChar = this.getTime2Char().get(endTime);
 				
 				// create a sequence that we can use to search for a related token
 		        SDataSourceSequence sequence= SaltFactory.eINSTANCE.createSDataSourceSequence();
@@ -499,9 +506,9 @@ public class Elan2SaltMapper
 		        sequence.setSEnd((int) endChar);
 		        			        
 		        // find the relevant tokens
-		        EList<SToken> sNewTokens = sDocument.getSDocumentGraph().getSTokensBySequence(sequence);
+		        EList<SToken> sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
 		        // create the span
-		        SSpan newSpan = sDocument.getSDocumentGraph().createSSpan(sNewTokens);
+		        SSpan newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
 
 		        // add the order relation
 		        if (this.getProps().isAddSOrderRelation() == true){
@@ -510,7 +517,7 @@ public class Elan2SaltMapper
 		        		orderRel.setSSource(lastSpan);
 		        		orderRel.setSTarget(newSpan);
 		        		orderRel.addSType(tiername);
-		        		sDocument.getSDocumentGraph().addSRelation(orderRel);
+		        		this.getSDocument().getSDocumentGraph().addSRelation(orderRel);
 		        	}
 		        	lastSpan = newSpan;
 		        }
