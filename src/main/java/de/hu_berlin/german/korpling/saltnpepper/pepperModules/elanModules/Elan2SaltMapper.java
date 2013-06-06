@@ -263,7 +263,7 @@ public class Elan2SaltMapper
 		// go through the tiers in elan
 		for (Object obj : this.getElanModel().getTiers()){
 			TierImpl tier = (TierImpl) obj;
-			if (!tier.getName().equals(MINIMAL_SEGMENTATION_TIER_NAME) & !this.getProps().getIgnoreTierNames().contains(tier.getName())){ // we do not want to make annotations to the tokens
+			if (!this.getProps().getSegmentationTierNames().contains(tier.getName()) & !this.getProps().getIgnoreTierNames().contains(tier.getName())){ // we do not want to make annotations to the tokens
 				// and go through the individual annotations
 				int lastSpanIndex = 0; // variable to speed up some checks below
 				for (Object annoObj : tier.getAnnotations()){
@@ -484,10 +484,9 @@ public class Elan2SaltMapper
 
 		// now make arching spans for the other maintiers
 		maintiers.remove(minimalTierName);
-		SSpan lastSpan = null;
 		for (String tiername : maintiers){
 			TierImpl tier = (TierImpl) this.getElanModel().getTierWithId(tiername);
-			
+			SSpan lastSpan = null;
 			// and go through the individual annotations
 			for (Object segObj : tier.getAnnotations()){
 				Annotation anno = (Annotation) segObj;
@@ -500,15 +499,19 @@ public class Elan2SaltMapper
 				int endChar = this.getTime2Char().get(endTime);
 				
 				// create a sequence that we can use to search for a related token
-		        SDataSourceSequence sequence= SaltFactory.eINSTANCE.createSDataSourceSequence();
+				SDataSourceSequence sequence = null;
+		        sequence= SaltFactory.eINSTANCE.createSDataSourceSequence();
 		        sequence.setSSequentialDS(primaryText);
 		        sequence.setSStart((int) beginChar);
 		        sequence.setSEnd((int) endChar);
 		        			        
 		        // find the relevant tokens
-		        EList<SToken> sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
+		        EList<SToken> sNewTokens = null;
+		        sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
 		        // create the span
-		        SSpan newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
+		        SSpan newSpan = null;
+		        newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
+		        newSpan.createSAnnotation(NAMESPACE_ELAN, tiername, anno.getValue());
 
 		        // add the order relation
 		        if (this.getProps().isAddSOrderRelation() == true){
@@ -518,6 +521,7 @@ public class Elan2SaltMapper
 		        		orderRel.setSTarget(newSpan);
 		        		orderRel.addSType(tiername);
 		        		this.getSDocument().getSDocumentGraph().addSRelation(orderRel);
+		        		orderRel = null;
 		        	}
 		        	lastSpan = newSpan;
 		        }
