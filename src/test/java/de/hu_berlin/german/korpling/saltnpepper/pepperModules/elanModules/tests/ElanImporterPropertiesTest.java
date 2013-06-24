@@ -17,6 +17,7 @@
  */
 package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.tests;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
@@ -55,5 +56,17 @@ public class ElanImporterPropertiesTest extends TestCase
 		assertTrue(ignoreTierNames.contains("secondTier"));
 		assertTrue(ignoreTierNames.contains("thirdTier"));
 		assertTrue(ignoreTierNames.contains("fourthTier"));
+	}
+	
+	public void testGetGridStructure()
+	{
+		String propVal= "linguistic_annotations ling,lemma,translation,lang,posLemma,pos,inflectionClassLemma,inflectionClass,inflection,clause; meta_annotations page,line,document,edition";
+		Properties props= new Properties();
+		props.put(ElanImporterProperties.PROP_GRID_STRUCTURE, propVal);
+		this.getFixture().setPropertyValues(props);
+		HashMap<String, String[]> gridStructure = this.getFixture().getGridStructure();
+		assertNotNull(gridStructure);
+		assertEquals(2, gridStructure.keySet().size());
+		assertEquals(10, gridStructure.get("linguistic_annotations").length);
 	}
 }

@@ -51,6 +51,9 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructu
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STYPE_NAME;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STextualDS;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SToken;
+import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SAnnotation;
+import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SLayer;
+import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SNode;
 
 /**
  * This class maps data coming from the ELAN model to a Salt model.
@@ -220,6 +223,30 @@ public class Elan2SaltMapper
 		}
 	}
 	
+	/** function to apply the grid structure
+	 * 
+	 */
+	public void applyGridStructure(){
+		HashMap<String, String[]> gridstructure = this.getProps().getGridStructure();
+		for (String grid: gridstructure.keySet()){
+			System.out.println("working on layer" + grid);
+			SLayer layer = SaltFactory.eINSTANCE.createSLayer();
+			layer.setSName(grid);
+			this.getSDocument().getSDocumentGraph().addSLayer(layer);
+			EList<SSpan> spanList = this.getSDocument().getSDocumentGraph().getSSpans();
+			for (SSpan sspan: spanList){
+				EList<SAnnotation> annoList = sspan.getSAnnotations();
+				for (SAnnotation sanno: annoList){
+					System.out.println("working" + sanno.getName() + "-" + sanno.getValueString() + " for layer " + grid);
+					if (Arrays.asList(gridstructure.get(grid)).contains(sanno.getName())){
+						sanno.setSNS(grid);
+						System.out.println("added anno to layer " + grid);
+					}
+				}
+			}
+		}
+	}
+	
 	/**
 	 * function that searches for attr/val meta annotations and adds them to the sdoc
 	 * @throws IOException 
@@ -274,8 +301,14 @@ public class Elan2SaltMapper
 				
 					// TODO this is perhaps better handled by STimeline?
 					// get the positions in the primary text
-					int beginChar = this.getTime2Char().get(beginTime);
-					int endChar = this.getTime2Char().get(endTime);
+					int beginChar = 0;
+					int endChar = 0;
+					try{
+						beginChar = this.getTime2Char().get(beginTime);
+						endChar = this.getTime2Char().get(endTime);
+					} catch (Exception ex) {
+						System.out.println("something wrong at " + beginTime + " up to " + endTime);
+					}
 					
 					// if there is something interesting in the value, grab everything you can get about this anno
 					if (!value.isEmpty()){
@@ -435,6 +468,7 @@ public class Elan2SaltMapper
         			}
         		}
         	}
+        	
         	// if an anno ends at this segment, but no anno starts here, then that means that the previous and current segments have to form a token
         	if (endToken == true & startToken == false){
         		startStopValues.add(corstart);
@@ -495,8 +529,14 @@ public class Elan2SaltMapper
 				
 				// grab everything you can get about this anno
 				// get the positions in the primary text
-				int beginChar = this.getTime2Char().get(beginTime);
-				int endChar = this.getTime2Char().get(endTime);
+				int beginChar = -1;
+				int endChar = -1;
+				try {
+					beginChar = this.getTime2Char().get(beginTime);
+					endChar = this.getTime2Char().get(endTime);
+				} catch (Exception e) {
+					System.out.println("something wrong at " + beginTime + " up to " + endTime);
+				}
 				
 				// create a sequence that we can use to search for a related token
 				SDataSourceSequence sequence = null;
