@@ -18,14 +18,13 @@
 package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import mpi.eudico.server.corpora.clom.Annotation;
@@ -36,13 +35,15 @@ import mpi.eudico.server.corpora.clomimpl.abstr.TranscriptionImpl;
 
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.common.util.URI;
+import org.osgi.service.log.LogService;
 
+import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.MAPPING_RESULT;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperMapper;
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperModuleProperties;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.impl.PepperMapperImpl;
 import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.exceptions.ELANImporterException;
 import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.playground.salt.elan2salt.ElanImporterMain;
 import de.hu_berlin.german.korpling.saltnpepper.salt.SaltFactory;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpus;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SDocument;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SDataSourceSequence;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SDocumentGraph;
@@ -53,21 +54,16 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructu
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SToken;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SAnnotation;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SLayer;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SNode;
 
 /**
  * This class maps data coming from the ELAN model to a Salt model.
  * @author Florian Zipser
  * @author Tom Ruette
  */
-public class Elan2SaltMapper 
+public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 {
 	// properties to be set, I guess
 	public static final String NAMESPACE_ELAN="elan";
-//	public static final String PRIMARY_TEXT_TIER_NAME="character";
-//	public static final List<String> SEGMENTATION_TIERNAMES= Arrays.asList("character", "txt");
-//	public static final List<String> IGNORE_TIERNAMES= Arrays.asList("vergleich", "segm");
-//	public static final boolean addOrderRelation = true;
 	
 	// variables that I want to keep track of in the whole class, but that are not set initially
 	protected Map<Long,Integer> time2char = new HashMap<Long,Integer>(); // solve this by using STimeline?
@@ -75,11 +71,11 @@ public class Elan2SaltMapper
 	protected String MINIMAL_SEGMENTATION_TIER_NAME = null;
 	protected TranscriptionImpl elan = null;
 	
-	//TODO remove when inheriting from PepperMapper
-	protected SDocument sDocument= null;
-	protected PepperModuleProperties props= null;
-	protected SCorpus sCorpus= null;
-	protected URI resourceURI= null;
+	/** returns the {@link PepperModuleProperties} as {@link ElanImporterProperties}**/
+	public ElanImporterProperties getProps()
+	{
+		return((ElanImporterProperties) getProperties());
+	}
 	
 	public Map<Long,Integer> getTime2Char() {
 		return(time2char);
@@ -88,32 +84,7 @@ public class Elan2SaltMapper
 	public Map<Integer,Long> getChar2Time() {
 		return(char2time);
 	}
-	
-	//TODO remove when inheriting from PepperMapper
-	public SDocument getSDocument() {
-		return(sDocument);
-	}
-
-	//TODO remove when inheriting from PepperMapper
-	public void setSDocument(SDocument sDocument) {
-		this.sDocument= sDocument;
-	}
-
-	//TODO remove when inheriting from PepperMapper
-	public SCorpus getSCorpus() {
-		return(sCorpus);
-	}
-
-	//TODO remove when inheriting from PepperMapper
-	public void setSCorpus(SCorpus sCorpus) {
-		this.sCorpus= sCorpus;
-	}
-
-	//TODO remove when inheriting from PepperMapper
-	public URI getResourceURI() {
-		return(resourceURI);
-	}
-	
+		
 	public void setElanModel(String fullFilename){
 		this.elan = new TranscriptionImpl(fullFilename);
 	}
@@ -134,31 +105,14 @@ public class Elan2SaltMapper
 	public void setDocumentMetaAnnotation(String key, String value){
 		this.getSDocument().createSMetaAnnotation(null, key, value);
 	}
-	
-	//TODO remove when inheriting from PepperMapper
-	public void setResourceURI(URI resourceURI) {
-		this.resourceURI= resourceURI;
-	}
-
-	//TODO remove when inheriting from PepperMapper
-	public void setProps(PepperModuleProperties props) {
-		this.props = props;
-	}
-
-	//TODO remove when inheriting from PepperMapper
-	public ElanImporterProperties getProps() {
-		return (ElanImporterProperties) props;
-	}
-	
-	//TODO set @override
-	public void mapSCorpus()
-	{
 		
-	}
-	
-	//TODO set @override
-	public void mapSDocument()
-	{		
+	/**
+	 * {@inheritDoc PepperMapper#setSDocument(SDocument)}
+	 * 
+	 * OVERRIDE THIS METHOD FOR CUSTOMIZED MAPPING.
+	 */
+	@Override
+	public MAPPING_RESULT mapSDocument() {
 		// set the elan document
 		// TODO is this the nicest way of getting the elan path? Probably we can handle this from the superclass with setElanModel
 //		String fname = sDocument.getSMetaAnnotation("origFile").getValueString();
@@ -172,6 +126,7 @@ public class Elan2SaltMapper
 
 		// goes through the elan document, and makes all the elan tiers into salt tiers
 		traverseElanDocument(sDocument);
+		return(MAPPING_RESULT.FINISHED);
 	}
 	
 	/**
@@ -255,28 +210,50 @@ public class Elan2SaltMapper
 		String path = this.getResourceURI().toFileString();
 		// get to the metadata
 		String[] segments = path.split("/");
-		String target = segments[segments.length-2];
-		String fname = segments[segments.length-1];
-		path = path.replace(target, "meta");
-		path = path.replace(fname, fname.split("_")[0]);
+		if (segments.length>2)
+		{	
+			String target = segments[segments.length-2];
+			path = path.replace(target, "meta");
+		}
+		if (segments.length>1)
+		{	
+			String fname = segments[segments.length-1];
+			path = path.replace(fname, fname.split("_")[0]);
+		}
+		
 		path = path + ".txt";
 		path = path.replaceAll(".eaf", "");
-		BufferedReader br = new BufferedReader(new FileReader(path));
-		String line;
-		while ((line = br.readLine()) != null) {
-			String attr = line.split("=")[0];
-			String val = "NA";
-			try{
-				val = line.split("=")[1];
-				if (val.equals("null")){
-					val = "NA";
-				}
-			} catch (ArrayIndexOutOfBoundsException e) {
-				continue;
-			}
-			this.getSDocument().createSMetaAnnotation(null, attr, val);
+		
+		System.out.println("path: "+ path);
+		File metaFile= new File(path);
+		if (!metaFile.exists())
+		{
+			if (this.getLogService()!= null)
+				this.getLogService().log(LogService.LOG_WARNING, "Cannot read meta data file '"+metaFile.getAbsolutePath()+"'.");
 		}
-		br.close();
+		else
+		{
+			BufferedReader br = new BufferedReader(new FileReader(path));
+			try{
+				String line;
+				while ((line = br.readLine()) != null) {
+					String attr = line.split("=")[0];
+					String val = "NA";
+					try{
+						val = line.split("=")[1];
+						if (val.equals("null")){
+							val = "NA";
+						}
+					} catch (ArrayIndexOutOfBoundsException e) {
+						continue;
+					}
+					this.getSDocument().createSMetaAnnotation(null, attr, val);
+				}
+			}
+			finally{
+				br.close();
+			}
+		}
 	}
 	
 	/**

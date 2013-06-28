@@ -17,22 +17,11 @@
  */
 package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules;
 
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.Map;
-
-import org.eclipse.emf.common.util.BasicEList;
-import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.common.util.URI;
 import org.osgi.service.component.annotations.Component;
 
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperExceptions.PepperModuleException;
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperImporter;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperMapper;
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.impl.PepperImporterImpl;
-import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.exceptions.ELANImporterException;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpus;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpusGraph;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SDocument;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SElementId;
 
 /**
@@ -44,77 +33,29 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SElementId;
 @Component(name="ElanImporterComponent", factory="PepperImporterComponentFactory")
 public class ElanImporter extends PepperImporterImpl implements PepperImporter
 {
+	/** all file endings supported by this importer **/
+	public static final String[] ELAN_FILE_ENDINGS={"eaf", "xml"};
+	
 	public ElanImporter()
 	{
 		super();
 		this.name= "ElanImporter";
 		this.addSupportedFormat("elan", "4.5.0", null);
 		this.setProperties(new ElanImporterProperties());
+		
+		//register file endings to be imported
+		for (String ending: ELAN_FILE_ENDINGS)
+			this.getSDocumentEndings().add(ending);
 	}
 	
 	/**
-	 * Stores relation between documents and their resource 
-	 */
-	private Map<SElementId, URI> documentResourceTable= null;
-	
-	@Override
-	public void importCorpusStructure(SCorpusGraph corpusGraph)
-			throws ELANImporterException
-	{
-		this.setSCorpusGraph(corpusGraph);
-		if (this.getSCorpusGraph()== null)
-			throw new ELANImporterException(this.name+": Cannot start with importing corpus, because salt project is not set.");
-		if (this.getCorpusDefinition()== null)
-			throw new ELANImporterException(this.name+": Cannot start with importing corpus, because no corpus definition to import is given.");
-		if (this.getCorpusDefinition().getCorpusPath()== null)
-			throw new ELANImporterException(this.name+": Cannot start with importing corpus, because the path of given corpus definition is null.");
-		if (this.getCorpusDefinition().getCorpusPath().isFile())
-		{
-			this.documentResourceTable= new Hashtable<SElementId, URI>();
-			//clean uri in corpus path (if it is a folder and ends with/, / has to be removed)
-			if (	(this.getCorpusDefinition().getCorpusPath().toFileString().endsWith("/")) || 
-					(this.getCorpusDefinition().getCorpusPath().toFileString().endsWith("\\")))
-			{
-				this.getCorpusDefinition().setCorpusPath(this.getCorpusDefinition().getCorpusPath().trimSegments(1));
-			}
-			try {
-				EList<String> endings= new BasicEList<String>();
-				endings.add("eaf");
-				endings.add("xml");
-				this.documentResourceTable= this.createCorpusStructure(this.getCorpusDefinition().getCorpusPath(), null, endings);
-			} catch (IOException e) {
-				throw new ELANImporterException(this.name+": Cannot start with importing corpus, because saome exception occurs: ",e);
-			}
-		}	
-	}
-	
-	/**
-	 * This method is called by method {@link #start()} of superclass {@link PepperImporter}, if the method was not overwritten
-	 * by the current class. If this is not the case, this method will be called for every document which has
-	 * to be processed.
-	 * @param sElementId the id value for the current document or corpus to process  
+	 * Creates a mapper of type {@link Elan2SaltMapper}.
+	 * {@inheritDoc PepperModule#createPepperMapper(SElementId)}
 	 */
 	@Override
-	public void start(SElementId sElementId) throws PepperModuleException 
+	public PepperMapper createPepperMapper(SElementId sElementId)
 	{
-		if (	(sElementId!= null) &&
-				(sElementId.getSIdentifiableElement()!= null) &&
-				((sElementId.getSIdentifiableElement() instanceof SDocument) ||
-				((sElementId.getSIdentifiableElement() instanceof SCorpus))))
-		{//only if given sElementId belongs to an object of type SDocument or SCorpus	
-			if (sElementId.getSIdentifiableElement() instanceof SDocument)
-			{
-				SDocument sDocument= (SDocument) sElementId.getSIdentifiableElement(); 
-				Elan2SaltMapper mapper= new Elan2SaltMapper();
-				mapper.setSDocument(sDocument);
-				URI documentPath= this.documentResourceTable.get(sElementId);
-				if (documentPath== null)
-					throw new ELANImporterException("Cannot retrieve a uri for document "+ sElementId);
-				mapper.setResourceURI(documentPath);
-				
-				mapper.setProps(this.getProperties());
-				mapper.mapSDocument();
-			}
-		}//only if given sElementId belongs to an object of type SDocument or SCorpus
+		Elan2SaltMapper mapper= new Elan2SaltMapper();
+		return(mapper);
 	}
 }
