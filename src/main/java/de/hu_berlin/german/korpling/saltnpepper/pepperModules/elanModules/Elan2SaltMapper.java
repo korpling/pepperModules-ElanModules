@@ -508,27 +508,35 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 				// get the positions in the primary text
 				int beginChar = -1;
 				int endChar = -1;
+		        SSpan newSpan = null;
 				try {
 					beginChar = this.getTime2Char().get(beginTime);
 					endChar = this.getTime2Char().get(endTime);
+				
+					// create a sequence that we can use to search for a related token
+					SDataSourceSequence sequence = null;
+			        sequence= SaltFactory.eINSTANCE.createSDataSourceSequence();
+			        sequence.setSSequentialDS(primaryText);
+			        sequence.setSStart((int) beginChar);
+			        sequence.setSEnd((int) endChar);
+			        			        
+			        // find the relevant tokens
+			        EList<SToken> sNewTokens = null;
+			        sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
+			        // create the span
+			        newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
+			        newSpan.createSAnnotation(NAMESPACE_ELAN, tiername, anno.getValue());
+			        // make enough spans for all layers
+			        for (String layerName : this.getProps().getGridStructure().keySet()){
+			        	SSpan layerSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
+			        	SLayer slayer = SaltFactory.eINSTANCE.createSLayer();
+			        	slayer.setSName(layerName);
+			        	this.getSDocument().getSDocumentGraph().addSLayer(slayer);
+			        	slayer.getSNodes().add(layerSpan);
+			        }
 				} catch (Exception e) {
 					System.out.println("something wrong at " + beginTime + " up to " + endTime);
 				}
-				
-				// create a sequence that we can use to search for a related token
-				SDataSourceSequence sequence = null;
-		        sequence= SaltFactory.eINSTANCE.createSDataSourceSequence();
-		        sequence.setSSequentialDS(primaryText);
-		        sequence.setSStart((int) beginChar);
-		        sequence.setSEnd((int) endChar);
-		        			        
-		        // find the relevant tokens
-		        EList<SToken> sNewTokens = null;
-		        sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
-		        // create the span
-		        SSpan newSpan = null;
-		        newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
-		        newSpan.createSAnnotation(NAMESPACE_ELAN, tiername, anno.getValue());
 
 		        // add the order relation
 		        if (this.getProps().isAddSOrderRelation() == true){
