@@ -36,16 +36,14 @@ public class ElanImporterProperties extends PepperModuleProperties
 	public static final String PROP_PRIMARY_TEXT_TIER_NAME=PREFIX+"primTextTierName";
 	public static final String PROP_SEGMENTATION_TIERNAMES=PREFIX+"segTierNames";
 	public static final String PROP_IGNORE_TIERNAMES=PREFIX+"ignoreTierNames";
-	public static final String PROP_ADD_SORDERRELATION=PREFIX+"addSOrderRelation";
-	public static final String PROP_GRID_STRUCTURE=PREFIX+"gridStructure";
+    public static final String PROP_LINKED_FOLDER=PREFIX+"linkedFolder";
 	
 	public ElanImporterProperties()
 	{
 		this.addProperty(new PepperModuleProperty<String>(PROP_PRIMARY_TEXT_TIER_NAME, String.class, "Name of the tier containing the primary text.", false));
 		this.addProperty(new PepperModuleProperty<String>(PROP_SEGMENTATION_TIERNAMES, String.class, "Names of the tiers that will be used as segmentation layers.",false));
 		this.addProperty(new PepperModuleProperty<String>(PROP_IGNORE_TIERNAMES, String.class, "Names of the tiers that will be ignored.", false));
-		this.addProperty(new PepperModuleProperty<Boolean>(PROP_ADD_SORDERRELATION, Boolean.class, "Determines if, this module shall add SOrderRelations to all tokens (segmentation layers).",true, false));
-		this.addProperty(new PepperModuleProperty<String>(PROP_GRID_STRUCTURE, String.class, "How the annotation levels are bundled in layers.", false));
+		this.addProperty(new PepperModuleProperty<String>(PROP_LINKED_FOLDER, String.class, "Location of the linked files.", false));
 	}
 	
 	public String getPrimTextTierName()
@@ -91,29 +89,9 @@ public class ElanImporterProperties extends PepperModuleProperties
 		return(retVal);
 	}
 	
-	public boolean isAddSOrderRelation()
+	public String getLinkedFolder()
 	{
-		return((Boolean)this.getProperty(PROP_ADD_SORDERRELATION).getValue());
+		return((String)this.getProperty(PROP_LINKED_FOLDER).getValue());
 	}
 	
-	public HashMap<String, String[]> getGridStructure()
-	{
-		HashMap<String, String[]> retVal= new HashMap<String, String[]>();;
-		String raw= (String)this.getProperty(PROP_GRID_STRUCTURE).getValue();
-		if (raw!= null)
-		{
-			String[] rawLayers= raw.split(";");
-			if (rawLayers!= null)
-			{
-				for (String rawLayer: rawLayers)
-				{
-					String key = rawLayer.trim().split(" ")[0];
-					String rawValues = rawLayer.substring(key.length());
-					String[] values = rawValues.trim().split(",");
-					retVal.put(key, values);
-				}
-			}
-		}
-		return(retVal);
-	}
 }

@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,13 +46,12 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.SaltFactory;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SDocument;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SDataSourceSequence;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SDocumentGraph;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SOrderRelation;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SSpan;
+import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SSpanningRelation;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STYPE_NAME;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STextualDS;
+import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STimelineRelation;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SToken;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SAnnotation;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SLayer;
 
 /**
  * This class maps data coming from the ELAN model to a Salt model.
@@ -114,9 +112,6 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 	@Override
 	public MAPPING_RESULT mapSDocument() {
 		// set the elan document
-		// TODO is this the nicest way of getting the elan path? Probably we can handle this from the superclass with setElanModel
-//		String fname = sDocument.getSMetaAnnotation("origFile").getValueString();
-//		setElanModel(fname);
 		setElanModel(this.getResourceURI().toFileString());
 		if (this.getSDocument().getSDocumentGraph()== null)
 			this.getSDocument().setSDocumentGraph(SaltFactory.eINSTANCE.createSDocumentGraph());
@@ -173,35 +168,91 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 		try {
 			addMetaAnnotations();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+
+		}
+		
+		// add a linked elan file
+		try {
+			String filename = this.getResourceURI().toFileString().substring(this.getResourceURI().toFileString().lastIndexOf("/"));
+			System.out.println(this.getProps().getLinkedFolder() + filename);
+			addLinkedElan(this.getProps().getLinkedFolder() + filename);
+		} catch (Exception e){
+			
 		}
 	}
 	
-	/** function to apply the grid structure
-	 * 
+	/** function to add a linked elan file
+	 * designed for DDD gloss corpora
 	 */
-	public void applyGridStructure(){
-		HashMap<String, String[]> gridstructure = this.getProps().getGridStructure();
-		for (String grid: gridstructure.keySet()){
-			System.out.println("working on layer" + grid);
-			SLayer layer = SaltFactory.eINSTANCE.createSLayer();
-			layer.setSName(grid);
-			this.getSDocument().getSDocumentGraph().addSLayer(layer);
-			EList<SSpan> spanList = this.getSDocument().getSDocumentGraph().getSSpans();
-			for (SSpan sspan: spanList){
-				EList<SAnnotation> annoList = sspan.getSAnnotations();
-				for (SAnnotation sanno: annoList){
-					System.out.println("working" + sanno.getName() + "-" + sanno.getValueString() + " for layer " + grid);
-					if (Arrays.asList(gridstructure.get(grid)).contains(sanno.getName())){
-						sanno.setSNS(grid);
-						System.out.println("added anno to layer " + grid);
-					}
+	public void addLinkedElan(String pathToFile) throws IOException {
+		// read in gloss file
+		TranscriptionImpl gloss = new TranscriptionImpl(pathToFile);
+		System.out.println(gloss);
+		// 1. play around with the tokens so that the glosses will fit
+		for (String glossid : AddLinkedElan.getGlossIDs(this.getElanModel())){
+			TranscriptionImpl glosspart = AddLinkedElan.getEafPartForGlossID(gloss, glossid);
+			// establish how many tokens need to be added to the main file to accomodate the gloss
+			EList<SToken> stokens = (EList<SToken>) AddLinkedElan.getSTokensForGloss(this.getSDocument(), glossid);
+			int numberOfMainTokens = stokens.size();
+			int numberOfGlossTokens = AddLinkedElan.calcTokensNeeded(AddLinkedElan.getEafPartForGlossID(glosspart, glossid), this.getProps());
+			// if there are more gloss tokens than main tokens, insert tokens after last token, grow the annotations, and shift the rest
+			if (numberOfGlossTokens > numberOfMainTokens){
+				STextualDS curSTextualDS = this.getSDocument().getSDocumentGraph().getSTextualDSs().get(0);
+				int insertPos = AddLinkedElan.getStopFromSToken(stokens.get(stokens.size()-1));
+				EList<String> placeholders = new BasicEList<String>();
+				for (int i = 0; i < numberOfGlossTokens-numberOfMainTokens; i++){
+					placeholders.add("placeholder");
+				}
+
+				EList<SToken> placeholderTokens = this.getSDocument().getSDocumentGraph().insertSTokensAt(curSTextualDS, insertPos, placeholders, true);
+				Collection<SSpan> spans = AddLinkedElan.getSpansContaintingToken(stokens.get(stokens.size()-1));
+				for (SSpan span : spans){
+					addSTokensToSpan(placeholderTokens, span);
 				}
 			}
 		}
+		
+		// 2. assuming that there are at least enough tokens, initialize the timeline, create a salt model for the gloss and reference it to the main model
+		this.getSDocument().getSDocumentGraph().sortSTokenByText();
+		this.getSDocument().getSDocumentGraph().createSTimeline();
+
+		for (String glossid : AddLinkedElan.getGlossIDs(this.getElanModel())){
+			TranscriptionImpl glosspart = AddLinkedElan.getEafPartForGlossID(gloss, glossid);
+					
+			// get the stokens (now they should include the added tokens!
+			EList <SToken> stokens = (EList<SToken>) AddLinkedElan.getSTokensForGloss(this.getSDocument(), glossid);
+
+			// find the timelinerelations that can be used for the gloss annotation
+			EList<STimelineRelation> timelineRelationsForGloss = new BasicEList<STimelineRelation>();
+			for (STimelineRelation curTimelineRelation : this.getSDocument().getSDocumentGraph().getSTimelineRelations()){
+				SToken curToken = curTimelineRelation.getSToken();
+				if (stokens.contains(curToken)){
+					timelineRelationsForGloss.add(curTimelineRelation);
+				}
+			}
+			
+			// now, reuse the methods for the main elan file, modified so that they do not create segmentations
+			// and they also immediately set the timeline properties
+			// first, establish how many timelinerelations can be used per gloss token
+			int numberOfMainTokens = stokens.size();
+			int numberOfGlossTokens = AddLinkedElan.calcTokensNeeded(AddLinkedElan.getEafPartForGlossID(glosspart, glossid), this.getProps());
+			int posPerToken = (int) Math.floor( (float) numberOfMainTokens / (float) numberOfGlossTokens );
+			GlossEnricher ge = new GlossEnricher(this.getSDocument(), glosspart, timelineRelationsForGloss, posPerToken, this.getProps());
+			this.setSDocument(ge.getEnrichedDocument());
+		}
 	}
 	
+	private void addSTokensToSpan(EList<SToken> placeholderTokens, SSpan span){
+		SSpanningRelation spanRel=null;
+		for (SToken sToken: placeholderTokens)
+		{
+			spanRel = SaltFactory.eINSTANCE.createSSpanningRelation();
+			spanRel.setSToken(sToken);
+			spanRel.setSSpan(span);
+			span.getSDocumentGraph().addSRelation(spanRel);
+		}
+	}
+
 	/**
 	 * function that searches for attr/val meta annotations and adds them to the sdoc
 	 * @throws IOException 
@@ -224,7 +275,6 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 		path = path + ".txt";
 		path = path.replaceAll(".eaf", "");
 		
-		System.out.println("path: "+ path);
 		File metaFile= new File(path);
 		if (!metaFile.exists())
 		{
@@ -262,13 +312,17 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 	public void addAnnotations(){
 		
 		// fetch the primary text
-		STextualDS sTextualDS = this.getSDocument().getSDocumentGraph().getSTextualDSs().get(0);
+		int amountOfTextualDSs = this.getSDocument().getSDocumentGraph().getSTextualDSs().size();
+		STextualDS sTextualDS = this.getSDocument().getSDocumentGraph().getSTextualDSs().get(amountOfTextualDSs-1);
 		
 		// go through the tiers in elan
 		for (Object obj : this.getElanModel().getTiers()){
 			TierImpl tier = (TierImpl) obj;
-			if (!this.getProps().getSegmentationTierNames().contains(tier.getName()) & !this.getProps().getIgnoreTierNames().contains(tier.getName())){ // we do not want to make annotations to the tokens
-				// and go through the individual annotations
+			// we do not want to make annotations to the tokens, nor to the tiers that have already been made for segmentation, nor to the ignore tiers
+			// TODO make it, so that the segmentation tiers are created here as well
+			if (!this.getProps().getSegmentationTierNames().contains(tier.getName()) & !this.getProps().getIgnoreTierNames().contains(tier.getName())){ 
+
+				// and go through the individual annotations on this tier
 				int lastSpanIndex = 0; // variable to speed up some checks below
 				for (Object annoObj : tier.getAnnotations()){
 					Annotation anno = (Annotation) annoObj;
@@ -276,7 +330,6 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 					long beginTime = anno.getBeginTimeBoundary();
 					long endTime = anno.getEndTimeBoundary();
 				
-					// TODO this is perhaps better handled by STimeline?
 					// get the positions in the primary text
 					int beginChar = 0;
 					int endChar = 0;
@@ -284,7 +337,7 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 						beginChar = this.getTime2Char().get(beginTime);
 						endChar = this.getTime2Char().get(endTime);
 					} catch (Exception ex) {
-						System.out.println("something wrong at " + beginTime + " up to " + endTime);
+						throw new ELANImporterException("something wrong at " + beginTime + " up to " + endTime + "in file " + this.getElanModel().getFullPath() );
 					}
 					
 					// if there is something interesting in the value, grab everything you can get about this anno
@@ -295,12 +348,10 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 				        sequence.setSStart((int) beginChar);
 				        sequence.setSEnd((int) endChar);
 				        
-				        // this span will receive the span which will be annotated
+				        // this span variable will receive the span which will be annotated
 				        SSpan sSpan = null;
 
 			        	// Let's see if there are already some spans in the sDocument that fit the bill
-				        // TODO change this to the more efficient getSSpanBySequence method when Florian fixes the bug					    
-				        // EList<SSpan> sSpans = sDocument.getSDocumentGraph().getSSpanBySequence(sequence);
 			        	EList<SSpan> sSpansInSDoc = this.getSDocument().getSDocumentGraph().getSSpans();
 			        	for (int i = lastSpanIndex; i < sSpansInSDoc.size(); i++){ // start at lastspanIndex, because previous spans are not possible
 			        		// init the current span
@@ -311,39 +362,31 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 			        		rels.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
 			        		EList<SDataSourceSequence> sequences= this.getSDocument().getSDocumentGraph().getOverlappedDSSequences(sp, rels);
 			        		
-			        		// grab the primtext part with the elan anno start and end info
-			        		String checkPrimAnno = sTextualDS.getSText().substring(beginChar, endChar).trim();
-			        		// grab the primtext part with the dssequence start and end info
-			        		String checkPrimSeq = sTextualDS.getSText().substring(sequences.get(0).getSStart(), sequences.get(0).getSEnd()).trim();
+			        		// grab the start en end of the first sequence for comparison with the anno start and end
 			        		int startSeq = sequences.get(0).getSStart();
 			        		int endSeq = sequences.get(0).getSEnd();
 			        		
 			        		// check to see if this is the right span...
-			        		if (checkPrimAnno.equals(checkPrimSeq)){
-			        			if (startSeq == beginChar & endSeq == endChar){
-			        				sSpan = sp;
-				        			lastSpanIndex = i; // so that the next through this tier is quicker.
-				        			break;
-				        		}
+			        		if (startSeq == beginChar & endSeq == endChar){
+			        			sSpan = sp;
+				        		lastSpanIndex = i; // so that the next loop through this tier is quicker.
+				        		break;
 			        		}
 			        	}
 			        	
+			        	// if we found a span that fits, add the annotation to it
 				        if (sSpan != null){
 				        	sSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);	
 				        }
-				        // ok, last chance, perhaps there was no span yet, so we have to create one
+				        
+				        // if there was no span yet, create a new one and add the anno
 				        if (sSpan == null){
+				        	// find the tokens that are covered by the annotation
 					        EList<SToken> sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
 					        if (sNewTokens.size() > 0){
-					        	EList<STYPE_NAME> rels= new BasicEList<STYPE_NAME>();
-					        	rels.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
-					        	
-					        	int firstTokenStart = this.getSDocument().getSDocumentGraph().getOverlappedDSSequences(sNewTokens.get(0), rels).get(0).getSStart();
-					        	int lastTokenEnd = this.getSDocument().getSDocumentGraph().getOverlappedDSSequences(sNewTokens.get(sNewTokens.size()-1), rels).get(0).getSEnd();
-					        	if (firstTokenStart == beginChar & lastTokenEnd == endChar){
-					        		SSpan newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
-					        		newSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);
-					        	}
+					        	// given these tokens, create a span and add the annotation
+					        	SSpan newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
+					        	newSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);
 					        }
 				        }
 					}
@@ -356,25 +399,26 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 	 * function to go through the elan maintiers and set salt tokens for the segmentations in these tiers
 	 * @param maintiers the main tiers in elan, for which you want to create salt segmentations
 	 */
+	@SuppressWarnings("unchecked")
 	public void createSegmentationForMainTiers(){
 		
-		// cast mtiers to ArrayList
-		ArrayList<String> maintiers = new ArrayList<String>(this.getProps().getSegmentationTierNames());
-		
 		// find the tier with the smallest segmentation for the tokens
+		// TODO not every user has a character level, make this general by going through all layers, and keep track of annotation ends
+		// TODO it is not a good idea to make separate spans per segmentation layer, this gets confusing. Let us move everything to the add annotations part.
 		int l = -1;
 		String minimalTierName = null;
-		for (String tierName : maintiers){
-			TierImpl tier = (TierImpl) this.getElanModel().getTierWithId(tierName);
-			if (tier.getAnnotations().size() > l){
-				l = tier.getAnnotations().size();
-				minimalTierName = tierName;
+		for (Object tierobj : this.getElanModel().getTiers()){
+			TierImpl tier = (TierImpl) tierobj;
+			if (tier.getNumberOfAnnotations() > l){
+				l = tier.getNumberOfAnnotations();
+				minimalTierName = tier.getName();
 				MINIMAL_SEGMENTATION_TIER_NAME = minimalTierName;
 			}
 		}
 		// set the tokens for the minimal Tier
 		TierImpl smallestTier = (TierImpl) this.getElanModel().getTierWithId(minimalTierName);
-		STextualDS primaryText = this.getSDocument().getSDocumentGraph().getSTextualDSs().get(0);
+		int amountOfTextualDSs = this.getSDocument().getSDocumentGraph().getSTextualDSs().size();
+		STextualDS primaryText = this.getSDocument().getSDocumentGraph().getSTextualDSs().get(amountOfTextualDSs-1);
 	
 		// because we need to calculate the positions of the tokens in the primary text, we need these two things
 		String primtextchangeable = primaryText.getSText();
@@ -382,7 +426,7 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 		
 		// go through the annotations of the tier with the smallest subdivision
 		ArrayList<Integer> startStopValues = new ArrayList<Integer>();
-		SToken lastToken = null;
+		// TODO this should not be a loop through a specific annotation layer, but rather through a list of start and stop values
 		for (Object annoObj : smallestTier.getAnnotations()){
 			Annotation anno = (Annotation) annoObj;
 			String name = smallestTier.getName();
@@ -423,7 +467,6 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
         	offset = offset + stop;
         	primtextchangeable = primtextchangeable.substring(stop);
         	
-        	SToken newToken = null;
         	// check if this segment has a starting anno somewhere in the elan model
         	boolean endToken = false;
         	for (Tier tierabstr : (Collection<Tier>) this.getElanModel().getTiers()){
@@ -450,14 +493,14 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
         	if (endToken == true & startToken == false){
         		startStopValues.add(corstart);
         		startStopValues.add(corstop);
-        		newToken = this.getSDocument().getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
+        		this.getSDocument().getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
         		startStopValues.removeAll(startStopValues);
         	}
         	
         	// if an anno starts here, but nothing ends, then that means that the previous segments have to form a token, and that the current starts a new list
         	if (endToken == false & startToken == true){
         		if (startStopValues.size() > 0){
-        			newToken = this.getSDocument().getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
+        			this.getSDocument().getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
         		}
         		startStopValues.removeAll(startStopValues);
         		startStopValues.add(corstart);
@@ -467,9 +510,9 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
         	// if an anno starts and stops here, then the previous segments become a token, the current segments becomes a token, and the list is resetted
         	if (endToken == true & startToken == true){
         		if (startStopValues.size() > 0){
-        			newToken = this.getSDocument().getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
+        			this.getSDocument().getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
         		}
-        		newToken = this.getSDocument().getSDocumentGraph().createSToken(primaryText, corstart, corstop);
+        		this.getSDocument().getSDocumentGraph().createSToken(primaryText, corstart, corstop);
         		startStopValues.removeAll(startStopValues);
         	}
         	
@@ -478,26 +521,14 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
         		startStopValues.add(corstart);
         		startStopValues.add(corstop);
         	}        	
-        	
-        	/*if (this.getProps().isAddSOrderRelation() == true){
-        		if (lastToken != null){
-        			if (newToken != null){
-        				SOrderRelation orderRelToken = SaltFactory.eINSTANCE.createSOrderRelation();
-        				orderRelToken.setSSource(lastToken);
-        				orderRelToken.setSTarget(newToken);
-        				orderRelToken.addSType(minimalTierName);
-        				sDocument.getSDocumentGraph().addSRelation(orderRelToken);
-        			}
-	        	}
-    	        lastToken = newToken;
-	        }*/
 		}
+		// now, we have a single token for every possible annotation
 
 		// now make arching spans for the other maintiers
-		maintiers.remove(minimalTierName);
-		for (String tiername : maintiers){
+		// TODO this is the part that should go away, and left to add annotations
+		Collection<String> segtiers = this.getProps().getSegmentationTierNames();
+		for (String tiername : segtiers){
 			TierImpl tier = (TierImpl) this.getElanModel().getTierWithId(tiername);
-			SSpan lastSpan = null;
 			// and go through the individual annotations
 			for (Object segObj : tier.getAnnotations()){
 				Annotation anno = (Annotation) segObj;
@@ -526,30 +557,9 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 			        // create the span
 			        newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
 			        newSpan.createSAnnotation(NAMESPACE_ELAN, tiername, anno.getValue());
-			        // make enough spans for all layers
-			        for (String layerName : this.getProps().getGridStructure().keySet()){
-			        	SSpan layerSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
-			        	SLayer slayer = SaltFactory.eINSTANCE.createSLayer();
-			        	slayer.setSName(layerName);
-			        	this.getSDocument().getSDocumentGraph().addSLayer(slayer);
-			        	slayer.getSNodes().add(layerSpan);
-			        }
 				} catch (Exception e) {
-					System.out.println("something wrong at " + beginTime + " up to " + endTime);
+					throw new ELANImporterException("something wrong at " + beginTime + " up to " + endTime + "in file "+ this.getElanModel().getFullPath());
 				}
-
-		        // add the order relation
-		        if (this.getProps().isAddSOrderRelation() == true){
-		        	if (lastSpan != null){
-		        		SOrderRelation orderRel = SaltFactory.eINSTANCE.createSOrderRelation();
-		        		orderRel.setSSource(lastSpan);
-		        		orderRel.setSTarget(newSpan);
-		        		orderRel.addSType(tiername);
-		        		this.getSDocument().getSDocumentGraph().addSRelation(orderRel);
-		        		orderRel = null;
-		        	}
-		        	lastSpan = newSpan;
-		        }
 			}
 		}
 	}
