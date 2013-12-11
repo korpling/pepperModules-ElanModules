@@ -439,7 +439,7 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 			// the start value is the position of value in primtextchangeable
 			int start =  primtextchangeable.indexOf(value);
 			if (start < 0){
-				throw new ELANImporterException("token was not found in primarytext: (" + name + ", " + value + ") (primtext:" + primtextchangeable + ")");
+				throw new ELANImporterException("token was not found in primarytext: (" + name + ": " + value + ") (primtext:" + primtextchangeable + ")");
 			}
 
 			// the stop value is the start value plus the length of the value
