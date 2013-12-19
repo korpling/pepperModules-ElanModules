@@ -203,7 +203,6 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 				for (int i = 0; i < numberOfGlossTokens-numberOfMainTokens; i++){
 					placeholders.add("placeholder");
 				}
-
 				EList<SToken> placeholderTokens = this.getSDocument().getSDocumentGraph().insertSTokensAt(curSTextualDS, insertPos, placeholders, true);
 				Collection<SSpan> spans = AddLinkedElan.getSpansContaintingToken(stokens.get(stokens.size()-1));
 				for (SSpan span : spans){
