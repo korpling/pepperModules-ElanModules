@@ -382,10 +382,14 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 				        if (sSpan == null){
 				        	// find the tokens that are covered by the annotation
 					        EList<SToken> sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
-					        if (sNewTokens.size() > 0){
-					        	// given these tokens, create a span and add the annotation
-					        	SSpan newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
-					        	newSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);
+					        try{
+					        	if (sNewTokens.size() > 0){
+					        		// given these tokens, create a span and add the annotation
+					        		SSpan newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
+					        		newSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);
+					        	}
+					        } catch (Exception ex) {
+					        	throw new ELANImporterException("something wrong at " + beginTime + " up to " + endTime + " in " + tier.getName() + " with value " + value + " in file " + this.getElanModel().getFullPath() );
 					        }
 				        }
 					}
@@ -557,7 +561,7 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 			        newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
 			        newSpan.createSAnnotation(NAMESPACE_ELAN, tiername, anno.getValue());
 				} catch (Exception e) {
-					throw new ELANImporterException("something wrong at " + beginTime + " up to " + endTime + "in file "+ this.getElanModel().getFullPath());
+					throw new ELANImporterException("something wrong at " + beginTime + " up to " + endTime + " in " + tiername + " in file "+ this.getElanModel().getFullPath());
 				}
 			}
 		}
