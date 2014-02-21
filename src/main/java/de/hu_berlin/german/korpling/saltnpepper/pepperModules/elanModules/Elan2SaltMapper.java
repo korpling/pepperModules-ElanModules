@@ -174,7 +174,6 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 		// add a linked elan file
 		try {
 			String filename = this.getResourceURI().toFileString().substring(this.getResourceURI().toFileString().lastIndexOf("/"));
-			System.out.println(this.getProps().getLinkedFolder() + filename);
 			addLinkedElan(this.getProps().getLinkedFolder() + filename);
 		} catch (Exception e){
 			
@@ -187,7 +186,6 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 	public void addLinkedElan(String pathToFile) throws IOException {
 		// read in gloss file
 		TranscriptionImpl gloss = new TranscriptionImpl(pathToFile);
-		System.out.println(gloss);
 		// 1. play around with the tokens so that the glosses will fit
 		for (String glossid : AddLinkedElan.getGlossIDs(this.getElanModel())){
 			TranscriptionImpl glosspart = AddLinkedElan.getEafPartForGlossID(gloss, glossid);
