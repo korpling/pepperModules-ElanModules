@@ -14,7 +14,7 @@ import mpi.eudico.server.corpora.clomimpl.abstr.TranscriptionImpl;
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 
-import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.exceptions.ELANImporterException;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.exceptions.PepperModuleException;
 import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.playground.salt.elan2salt.ElanImporterMain;
 import de.hu_berlin.german.korpling.saltnpepper.salt.SaltFactory;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SDocument;
@@ -26,7 +26,6 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructu
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STimeline;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STimelineRelation;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SToken;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SLayer;
 
 
 public class GlossEnricher {
@@ -113,9 +112,9 @@ public class GlossEnricher {
 	 */
 	public void createPrimaryData(SDocument sDocument){
 		if (sDocument== null)
-			throw new ELANImporterException("Cannot create example, because the given sDocument is empty.");
+			throw new PepperModuleException("Cannot create example, because the given sDocument is empty.");
 		if (sDocument.getSDocumentGraph()== null)
-			throw new ELANImporterException("Cannot create example, because the given sDocument does not contain an SDocumentGraph.");
+			throw new PepperModuleException("Cannot create example, because the given sDocument does not contain an SDocumentGraph.");
 		STextualDS sTextualDS = null;
 		{//creating the primary text
 			TierImpl primtexttier = (TierImpl) this.getElanModel().getTierWithId(this.getProps().getPrimTextTierName());
@@ -177,7 +176,7 @@ public class GlossEnricher {
 			// the start value is the position of value in primtextchangeable
 			int start =  primtextchangeable.indexOf(value);
 			if (start < 0){
-				throw new ELANImporterException("token was not found in primarytext: (" + name + ", " + value + ") (primtext:" + primtextchangeable + ")");
+				throw new PepperModuleException("token was not found in primarytext: (" + name + ", " + value + ") (primtext:" + primtextchangeable + ")");
 			}
 
 			// the stop value is the start value plus the length of the value
@@ -306,7 +305,7 @@ public class GlossEnricher {
 		        	addToGlossSpans(newSpan);
 			        
 				} catch (Exception e) {
-					throw new ELANImporterException("something wrong at " + beginTime + " up to " + endTime);
+					throw new PepperModuleException("something wrong at " + beginTime + " up to " + endTime);
 				}
 			}
 		}
@@ -349,7 +348,7 @@ public class GlossEnricher {
 						beginChar = this.getTime2Char().get(beginTime);
 						endChar = this.getTime2Char().get(endTime);
 					} catch (Exception ex) {
-						throw new ELANImporterException("something wrong at " + beginTime + " up to " + endTime);
+						throw new PepperModuleException("something wrong at " + beginTime + " up to " + endTime);
 					}
 					
 					// if there is something interesting in the value, grab everything you can get about this anno

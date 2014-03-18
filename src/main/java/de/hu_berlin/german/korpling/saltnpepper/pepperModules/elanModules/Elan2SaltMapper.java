@@ -34,13 +34,14 @@ import mpi.eudico.server.corpora.clomimpl.abstr.TranscriptionImpl;
 
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
-import org.osgi.service.log.LogService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.MAPPING_RESULT;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperMapper;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperModuleProperties;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.impl.PepperMapperImpl;
-import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.exceptions.ELANImporterException;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.common.DOCUMENT_STATUS;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.PepperMapper;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.PepperModuleProperties;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.exceptions.PepperModuleException;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.impl.PepperMapperImpl;
 import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.playground.salt.elan2salt.ElanImporterMain;
 import de.hu_berlin.german.korpling.saltnpepper.salt.SaltFactory;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SDocument;
@@ -60,6 +61,7 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructu
  */
 public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 {
+	private static final Logger logger= LoggerFactory.getLogger(Elan2SaltMapper.class);
 	// properties to be set, I guess
 	public static final String NAMESPACE_ELAN="elan";
 	
@@ -110,18 +112,18 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 	 * OVERRIDE THIS METHOD FOR CUSTOMIZED MAPPING.
 	 */
 	@Override
-	public MAPPING_RESULT mapSDocument() {
+	public DOCUMENT_STATUS mapSDocument() {
 		// set the elan document
 		setElanModel(this.getResourceURI().toFileString());
 		if (this.getSDocument().getSDocumentGraph()== null)
 			this.getSDocument().setSDocumentGraph(SaltFactory.eINSTANCE.createSDocumentGraph());
 
 		// create the primary text
-		createPrimaryData(sDocument);
+		createPrimaryData(getSDocument());
 
 		// goes through the elan document, and makes all the elan tiers into salt tiers
-		traverseElanDocument(sDocument);
-		return(MAPPING_RESULT.FINISHED);
+		traverseElanDocument(getSDocument());
+		return(DOCUMENT_STATUS.COMPLETED);
 	}
 	
 	/**
@@ -132,9 +134,9 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 	 */
 	public void createPrimaryData(SDocument sDocument){
 		if (sDocument== null)
-			throw new ELANImporterException("Cannot create example, because the given sDocument is empty.");
+			throw new PepperModuleException(this, "Cannot create example, because the given sDocument is empty.");
 		if (sDocument.getSDocumentGraph()== null)
-			throw new ELANImporterException("Cannot create example, because the given sDocument does not contain an SDocumentGraph.");
+			throw new PepperModuleException(this, "Cannot create example, because the given sDocument does not contain an SDocumentGraph.");
 		STextualDS sTextualDS = null;
 		{//creating the primary text
 			TierImpl primtexttier = (TierImpl) this.getElanModel().getTierWithId(this.getProps().getPrimTextTierName());
@@ -278,8 +280,7 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 		File metaFile= new File(path);
 		if (!metaFile.exists())
 		{
-			if (this.getLogService()!= null)
-				this.getLogService().log(LogService.LOG_WARNING, "Cannot read meta data file '"+metaFile.getAbsolutePath()+"'.");
+			logger.warn("Cannot read meta data file '"+metaFile.getAbsolutePath()+"'.");
 		}
 		else
 		{
@@ -337,7 +338,7 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 						beginChar = this.getTime2Char().get(beginTime);
 						endChar = this.getTime2Char().get(endTime);
 					} catch (Exception ex) {
-						throw new ELANImporterException("something wrong at " + beginTime + " up to " + endTime + "in file " + this.getElanModel().getFullPath() );
+						throw new PepperModuleException(this, "something wrong at " + beginTime + " up to " + endTime + "in file " + this.getElanModel().getFullPath() );
 					}
 					
 					// if there is something interesting in the value, grab everything you can get about this anno
@@ -439,7 +440,7 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 			// the start value is the position of value in primtextchangeable
 			int start =  primtextchangeable.indexOf(value);
 			if (start < 0){
-				throw new ELANImporterException("token was not found in primarytext: (" + name + ", " + value + ") (primtext:" + primtextchangeable + ")");
+				throw new PepperModuleException(this, "token was not found in primarytext: (" + name + ", " + value + ") (primtext:" + primtextchangeable + ")");
 			}
 
 			// the stop value is the start value plus the length of the value
@@ -558,7 +559,7 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 			        newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
 			        newSpan.createSAnnotation(NAMESPACE_ELAN, tiername, anno.getValue());
 				} catch (Exception e) {
-					throw new ELANImporterException("something wrong at " + beginTime + " up to " + endTime + "in file "+ this.getElanModel().getFullPath());
+					throw new PepperModuleException(this, "something wrong at " + beginTime + " up to " + endTime + "in file "+ this.getElanModel().getFullPath());
 				}
 			}
 		}
