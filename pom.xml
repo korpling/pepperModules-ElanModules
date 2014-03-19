@@ -109,7 +109,6 @@
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Bundle-RequiredExecutionEnvironment>JavaSE-${java.version}</Bundle-RequiredExecutionEnvironment>
                         <Service-Component>${allServiceComponents}</Service-Component>
-                        <Include-Resource>{maven-resources}, LICENSE, NOTICE</Include-Resource>
                         <Import-Package>
                         	!com.apple.eawt,
 							!com.apple.eawt.event,
