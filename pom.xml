@@ -36,7 +36,7 @@
     <parent>
         <groupId>de.hu_berlin.german.korpling.saltnpepper</groupId>
         <artifactId>pepper-parentModule</artifactId>
-        <version>1.1.8-SNAPSHOT</version>
+        <version>2.0.0-SNAPSHOT</version>
     </parent>
     <!-- TODO: make a description -->
     <description />
@@ -109,7 +109,6 @@
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Bundle-RequiredExecutionEnvironment>JavaSE-${java.version}</Bundle-RequiredExecutionEnvironment>
                         <Service-Component>${allServiceComponents}</Service-Component>
-                        <Include-Resource>{maven-resources}, LICENSE, NOTICE</Include-Resource>
                         <Import-Package>
                         	!com.apple.eawt,
 							!com.apple.eawt.event,
@@ -364,40 +363,5 @@
             </plugin>
             <!-- end of docbook plugin -->
         </plugins>
-        <pluginManagement>
-        	<plugins>
-        		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
-        		<plugin>
-        			<groupId>org.eclipse.m2e</groupId>
-        			<artifactId>lifecycle-mapping</artifactId>
-        			<version>1.0.0</version>
-        			<configuration>
-        				<lifecycleMappingMetadata>
-        					<pluginExecutions>
-        						<pluginExecution>
-        							<pluginExecutionFilter>
-        								<groupId>
-        									org.apache.felix
-        								</groupId>
-        								<artifactId>
-        									maven-bundle-plugin
-        								</artifactId>
-        								<versionRange>
-        									[2.3.7,)
-        								</versionRange>
-        								<goals>
-        									<goal>bundle</goal>
-        								</goals>
-        							</pluginExecutionFilter>
-        							<action>
-        								<ignore></ignore>
-        							</action>
-        						</pluginExecution>
-        					</pluginExecutions>
-        				</lifecycleMappingMetadata>
-        			</configuration>
-        		</plugin>
-        	</plugins>
-        </pluginManagement>
     </build>
 </project>

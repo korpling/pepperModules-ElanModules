@@ -19,9 +19,9 @@ package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules;
 
 import org.osgi.service.component.annotations.Component;
 
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperImporter;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperMapper;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.impl.PepperImporterImpl;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.PepperImporter;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.PepperMapper;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.impl.PepperImporterImpl;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SElementId;
 
 /**
@@ -39,7 +39,7 @@ public class ElanImporter extends PepperImporterImpl implements PepperImporter
 	public ElanImporter()
 	{
 		super();
-		this.name= "ElanImporter";
+		this.setName("ElanImporter");
 		this.addSupportedFormat("elan", "4.5.0", null);
 		this.setProperties(new ElanImporterProperties());
 		
