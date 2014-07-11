@@ -42,8 +42,8 @@
     <description />
     <url>https://korpling.german.hu-berlin.de/p/projects/peppermodules-elanmodules</url>
     <issueManagement>
-        <system>Redmine</system>
-        <url>https://korpling.german.hu-berlin.de/p/projects/peppermodules-elanmodules/issues</url>
+        <system>GitHub</system>
+		<url>https://github.com/korpling/pepperModules-ElanModules/issues</url>
     </issueManagement>
     <ciManagement>
         <system>Jenkins</system>
@@ -54,9 +54,10 @@
         <name>Humboldt Univerity of Berlin, Sprachgeschichte</name>
     </organization>
     <scm>
-        <developerConnection>scm:svn:https://korpling.german.hu-berlin.de/svn/saltnpepper/PepperModules/ElanModules/trunk/</developerConnection>
-        <url>scm:svn:https://korpling.german.hu-berlin.de/svn/saltnpepper/PepperModules/ElanModules/</url>
-    </scm>
+  	<connection>scm:git:git://github.com/github.com:korpling/pepperModules-ElanModules.git</connection>
+    <developerConnection>scm:git:git@github.com:korpling/pepperModules-ElanModules.git</developerConnection>
+    <url>https://github.com/korpling/pepperModules-ElanModules.git</url>
+  </scm>
 	<properties>
 		<elan.version>4.5.1b</elan.version>
 	</properties>
@@ -73,15 +74,24 @@
         <plugins>
             <!-- start: Plugin for automatic releasing -->
             <plugin>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>${maven-release-plugin.version}</version>
-                <configuration>
-                    <tagBase>
-                        https://korpling.german.hu-berlin.de/svn/saltnpepper/PepperModules/ElanModules/tags/ </tagBase>
-                    <releaseProfiles>release</releaseProfiles>
-                    <goals>package assembly:single deploy</goals>
-                </configuration>
-            </plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.1</version>
+        <executions>
+        	<execution>
+        		<id>default</id>
+        		<goals>
+        			<goal>perform</goal>        			
+        		</goals>
+        		<configuration>
+        			<pomFileName>pepperModules-ElanModules/pom.xml</pomFileName>
+        		</configuration>
+        	</execution>
+        </executions>
+        <configuration>
+          <releaseProfiles>release</releaseProfiles>
+          <goals>package assembly:single deploy</goals>
+        </configuration>
+      </plugin>
             <!-- 	start: creation of bundle jar
                 This plugIn creates a META-INF folder if not present and adds the entries into the MANIFEST.MF file required for OSGi. It
                 also creates an OSGI-INF folder necessary for using service-components in OSGi.
