@@ -89,7 +89,7 @@ public class AddLinkedElan {
 		for (SSpan span : sDocument.getSDocumentGraph().getSSpans()){
 		  for (SAnnotation sAnno : span.getSAnnotations()){
 			if (sAnno.getSName().equals("Glosse")){
-			  String annoValue = sAnno.getValueString();
+			  String annoValue = sAnno.getValue().toString();
 			  if (annoValue.equals(glossid)){
 				  out = getSTokensFromSSpan(span);
 				  break;
