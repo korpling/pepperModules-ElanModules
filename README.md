@@ -1,6 +1,6 @@
 ![SaltNPepper project](./gh-site/img/SaltNPepper_logo2010.png)
 # ElanModules
-This project provides an importer to support the [ELAN format](https://tla.mpi.nl/tools/tla-tools/elan/) in the linguistic converter framework Pepper (see https://github.com/korpling/pepper). A detailed description of that mapping can be found in section [ElanModules](#details).
+This project provides an importer to support the [ELAN format](https://tla.mpi.nl/tools/tla-tools/elan/) in the linguistic converter framework Pepper (see https://github.com/korpling/pepper). A detailed description of that mapping can be found in section [ElanImporter](#details).
 
 Pepper is a pluggable framework to convert a variety of linguistic formats (like [TigerXML](http://www.ims.uni-stuttgart.de/forschung/ressourcen/werkzeuge/TIGERSearch/doc/html/TigerXML.html), the [EXMARaLDA format](http://www.exmaralda.org/), [PAULA](http://www.sfb632.uni-potsdam.de/paula.html) etc.) into each other. Furthermore Pepper uses Salt (see https://github.com/korpling/salt), the graph-based meta model for linguistic data, which acts as an intermediate model to reduce the number of mappings to be implemented. That means converting data from a format _A_ to format _B_ consists of two steps. First the data is mapped from format _A_ to Salt and second from Salt to format _B_. This detour reduces the number of Pepper modules from _n<sup>2</sup>-n_ (in the case of a direct mapping) to _2n_ to handle a number of n formats.
 
@@ -45,7 +45,7 @@ A detailed description of the Pepper workflow can be found on the [Pepper projec
 ### a) Identify the module by name
 
 ```xml
-<importer name="ElanModules" path="PATH_TO_CORPUS"/>
+<importer name="ElanImporter" path="PATH_TO_CORPUS"/>
 ```
 
 ### b) Identify the module by formats
@@ -83,7 +83,7 @@ This project has been funded by the [department of corpus linguistics and morpho
   limitations under the License.
 
 
-# <a name="details">ElanModules</a>
+# <a name="details">ElanImporter</a>
 
 For the moment, only Elan files without a linked media file and that only contain text-based annotations are properly handled. Moreover, the module has been developed within the framework of one specific project (Deutsch Diachron Digital), which may lead to some unexpected behavior when exposed to alien files. Nonetheless, the development of the mapping has been oriented towards generic functionality. In case of problems, please contact the developer.
 The first step in the mapping to Salt consists of the creation of a so called STextualDS, which contains the complete text that is going to be annotated. The tier in Elan that holds the text is given by the user in the special properties.
