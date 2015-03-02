@@ -141,6 +141,9 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 		{//creating the primary text
 			TierImpl primtexttier = (TierImpl) this.getElanModel().getTierWithId(this.getProps().getPrimTextTierName());
 			StringBuffer primText = new StringBuffer();
+			if (primtexttier== null){
+				throw new PepperModuleException(this, "Cannot import data, no primary text tier was found. Please use customization property '"+ElanImporterProperties.PROP_PRIMARY_TEXT_TIER_NAME+"'. ");
+			}
 			for (Object obj : primtexttier.getAnnotations()){
 				AbstractAnnotation charAnno = (AbstractAnnotation) obj;
 				// TODO assumption, the value of the anno is exactly is it is supposed to be (so also with spaces and so), so that everything can just be concatenated
@@ -383,8 +386,10 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper
 				        // if there was no span yet, create a new one and add the anno
 				        if (sSpan == null){
 				        	// find the tokens that are covered by the annotation
-					        EList<SToken> sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
-					        if (sNewTokens.size() > 0){
+				        	EList<SToken> sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
+					        
+					        if (	(sNewTokens!= null)&&
+					        		(sNewTokens.size() > 0)){
 					        	// given these tokens, create a span and add the annotation
 					        	SSpan newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
 					        	newSpan.createSAnnotation(NAMESPACE_ELAN, tier.getName(), value);
