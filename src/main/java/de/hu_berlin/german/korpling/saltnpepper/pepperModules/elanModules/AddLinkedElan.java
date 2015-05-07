@@ -1,5 +1,5 @@
 /**
- * Copyright 2009 Humboldt University of Berlin, INRIA.
+ * Copyright 2009 Humboldt-Universität zu Berlin, INRIA.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,7 +89,7 @@ public class AddLinkedElan {
 		for (SSpan span : sDocument.getSDocumentGraph().getSSpans()){
 		  for (SAnnotation sAnno : span.getSAnnotations()){
 			if (sAnno.getSName().equals("Glosse")){
-			  String annoValue = sAnno.getValueString();
+			  String annoValue = sAnno.getValue().toString();
 			  if (annoValue.equals(glossid)){
 				  out = getSTokensFromSSpan(span);
 				  break;
