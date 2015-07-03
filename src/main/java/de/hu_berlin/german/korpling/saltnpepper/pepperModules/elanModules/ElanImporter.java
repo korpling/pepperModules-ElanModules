@@ -17,6 +17,7 @@
  */
 package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules;
 
+import org.eclipse.emf.common.util.URI;
 import org.osgi.service.component.annotations.Component;
 
 import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.PepperImporter;
@@ -40,6 +41,9 @@ public class ElanImporter extends PepperImporterImpl implements PepperImporter
 	{
 		super();
 		this.setName("ElanImporter");
+		setSupplierContact(URI.createURI("saltnpepper@lists.hu-berlin.de"));
+		setSupplierHomepage(URI.createURI("https://github.com/korpling/pepperModules-ELANModules"));
+		setDesc("This importer transforms data in ELAN format to a Salt model. ");
 		this.addSupportedFormat("elan", "4.5.0", null);
 		this.setProperties(new ElanImporterProperties());
 		
