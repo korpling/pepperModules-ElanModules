@@ -31,14 +31,12 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SElementId;
  * @version 1.0
  *
  */
-@Component(name="ElanImporterComponent", factory="PepperImporterComponentFactory")
-public class ElanImporter extends PepperImporterImpl implements PepperImporter
-{
+@Component(name = "ElanImporterComponent", factory = "PepperImporterComponentFactory")
+public class ElanImporter extends PepperImporterImpl implements PepperImporter {
 	/** all file endings supported by this importer **/
-	public static final String[] ELAN_FILE_ENDINGS={"eaf", "xml"};
-	
-	public ElanImporter()
-	{
+	public static final String[] ELAN_FILE_ENDINGS = { "eaf", "xml" };
+
+	public ElanImporter() {
 		super();
 		this.setName("ElanImporter");
 		setSupplierContact(URI.createURI("saltnpepper@lists.hu-berlin.de"));
@@ -46,20 +44,19 @@ public class ElanImporter extends PepperImporterImpl implements PepperImporter
 		setDesc("This importer transforms data in ELAN format to a Salt model. ");
 		this.addSupportedFormat("elan", "4.5.0", null);
 		this.setProperties(new ElanImporterProperties());
-		
-		//register file endings to be imported
-		for (String ending: ELAN_FILE_ENDINGS)
+
+		// register file endings to be imported
+		for (String ending : ELAN_FILE_ENDINGS)
 			this.getSDocumentEndings().add(ending);
 	}
-	
+
 	/**
-	 * Creates a mapper of type {@link Elan2SaltMapper}.
-	 * {@inheritDoc PepperModule#createPepperMapper(SElementId)}
+	 * Creates a mapper of type {@link Elan2SaltMapper}. {@inheritDoc
+	 * PepperModule#createPepperMapper(SElementId)}
 	 */
 	@Override
-	public PepperMapper createPepperMapper(SElementId sElementId)
-	{
-		Elan2SaltMapper mapper= new Elan2SaltMapper();
-		return(mapper);
+	public PepperMapper createPepperMapper(SElementId sElementId) {
+		Elan2SaltMapper mapper = new Elan2SaltMapper();
+		return (mapper);
 	}
 }

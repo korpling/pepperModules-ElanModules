@@ -24,8 +24,7 @@ import junit.framework.TestCase;
 
 import org.corpus_tools.peppermodules.elanModules.ElanImporterProperties;
 
-public class ElanImporterPropertiesTest extends TestCase
-{
+public class ElanImporterPropertiesTest extends TestCase {
 
 	private ElanImporterProperties fixture;
 
@@ -36,20 +35,18 @@ public class ElanImporterPropertiesTest extends TestCase
 	public void setFixture(ElanImporterProperties fixture) {
 		this.fixture = fixture;
 	}
-	
-	public void setUp()
-	{
+
+	public void setUp() {
 		this.setFixture(new ElanImporterProperties());
 	}
-	
-	public void testGetIgnoreTierNames()
-	{
-		String propVal= "firstTier,secondTier, thirdTier,          fourthTier      ";
-		Properties props= new Properties();
+
+	public void testGetIgnoreTierNames() {
+		String propVal = "firstTier,secondTier, thirdTier,          fourthTier      ";
+		Properties props = new Properties();
 		props.put(ElanImporterProperties.PROP_IGNORE_TIERNAMES, propVal);
 		this.getFixture().setPropertyValues(props);
-		
-		List<String> ignoreTierNames= this.getFixture().getIgnoreTierNames();
+
+		List<String> ignoreTierNames = this.getFixture().getIgnoreTierNames();
 		assertNotNull(ignoreTierNames);
 		assertEquals(4, ignoreTierNames.size());
 		assertTrue(ignoreTierNames.contains("firstTier"));

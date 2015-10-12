@@ -37,11 +37,11 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructu
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SAnnotation;
 
 public class AddLinkedElan {
-	
-	public static ArrayList<String> getGlossIDs(TranscriptionImpl main){
+
+	public static ArrayList<String> getGlossIDs(TranscriptionImpl main) {
 		ArrayList<String> out = new ArrayList<String>();
 		TierImpl glosstier = (TierImpl) main.getTierWithId("Glosse");
-		for (Object annoObj : glosstier.getAnnotations()){
+		for (Object annoObj : glosstier.getAnnotations()) {
 			Annotation anno = (Annotation) annoObj;
 			out.add(anno.getValue());
 		}
@@ -53,9 +53,9 @@ public class AddLinkedElan {
 		long stop = -1;
 		TranscriptionImpl out = null;
 		TierImpl glossidtier = (TierImpl) gloss.getTierWithId("Glosse");
-		for (Object annoObj : glossidtier.getAnnotations()){
+		for (Object annoObj : glossidtier.getAnnotations()) {
 			Annotation anno = (Annotation) annoObj;
-			if (glossid.equals(anno.getValue())){
+			if (glossid.equals(anno.getValue())) {
 				start = anno.getBeginTimeBoundary();
 				stop = anno.getEndTimeBoundary();
 				out = getEafBetween(gloss, start, stop);
@@ -64,49 +64,49 @@ public class AddLinkedElan {
 		}
 		return out;
 	}
-	
-	public static TranscriptionImpl getEafBetween(TranscriptionImpl in, long beginTime, long endTime){
+
+	public static TranscriptionImpl getEafBetween(TranscriptionImpl in, long beginTime, long endTime) {
 		TranscriptionImpl out = new TranscriptionImpl();
-		for (Object tierobj : in.getTiers()){
-		  TierImpl tier = (TierImpl) tierobj;
-		  // create new tier
-		  TierImpl newTier = new TierImpl(tier.getName(), null, out, new LinguisticType("main-tier"));
-		  // add selected annotations to new tier
-		  for (Object annoobj : tier.getAnnotations()){
-			  Annotation anno = (Annotation) annoobj;
-			  if (anno.getBeginTimeBoundary() >= beginTime && anno.getEndTimeBoundary() <= endTime){
-				  newTier.addAnnotation(anno);
-			  }
-		  }
-		  // add new tier to out transcription
-		  out.addTier(newTier);
+		for (Object tierobj : in.getTiers()) {
+			TierImpl tier = (TierImpl) tierobj;
+			// create new tier
+			TierImpl newTier = new TierImpl(tier.getName(), null, out, new LinguisticType("main-tier"));
+			// add selected annotations to new tier
+			for (Object annoobj : tier.getAnnotations()) {
+				Annotation anno = (Annotation) annoobj;
+				if (anno.getBeginTimeBoundary() >= beginTime && anno.getEndTimeBoundary() <= endTime) {
+					newTier.addAnnotation(anno);
+				}
+			}
+			// add new tier to out transcription
+			out.addTier(newTier);
 		}
 		return out;
 	}
 
 	public static Collection<SToken> getSTokensForGloss(SDocument sDocument, String glossid) {
 		Collection<SToken> out = null;
-		for (SSpan span : sDocument.getSDocumentGraph().getSSpans()){
-		  for (SAnnotation sAnno : span.getSAnnotations()){
-			if (sAnno.getSName().equals("Glosse")){
-			  String annoValue = sAnno.getValue().toString();
-			  if (annoValue.equals(glossid)){
-				  out = getSTokensFromSSpan(span);
-				  break;
-			  }
+		for (SSpan span : sDocument.getSDocumentGraph().getSSpans()) {
+			for (SAnnotation sAnno : span.getSAnnotations()) {
+				if (sAnno.getSName().equals("Glosse")) {
+					String annoValue = sAnno.getValue().toString();
+					if (annoValue.equals(glossid)) {
+						out = getSTokensFromSSpan(span);
+						break;
+					}
+				}
 			}
-		  }
 		}
 		return out;
 	}
 
 	public static int calcTokensNeeded(TranscriptionImpl glosspart, ElanImporterProperties props) {
 		int count = 0;
-		for (Object tierobj : glosspart.getTiers()){
+		for (Object tierobj : glosspart.getTiers()) {
 			TierImpl tier = (TierImpl) tierobj;
-			if (!props.getIgnoreTierNames().contains(tier.getName())){
+			if (!props.getIgnoreTierNames().contains(tier.getName())) {
 				int annoCount = tier.getAnnotations().size();
-				if (annoCount > count){
+				if (annoCount > count) {
 					count = annoCount;
 				}
 			}
@@ -114,35 +114,35 @@ public class AddLinkedElan {
 		return count;
 	}
 
-	private static STextualRelation getSTextualRelationFromSToken(SToken stok){
+	private static STextualRelation getSTextualRelationFromSToken(SToken stok) {
 		STextualRelation out = null;
-		for (STextualRelation stextrel : stok.getSDocumentGraph().getSTextualRelations()){
-			if (stextrel.getSToken().equals(stok)){
-			  out = stextrel;
-			  break;
+		for (STextualRelation stextrel : stok.getSDocumentGraph().getSTextualRelations()) {
+			if (stextrel.getSToken().equals(stok)) {
+				out = stextrel;
+				break;
 			}
 		}
 		return out;
 	}
-	
+
 	public static int getStopFromSToken(SToken sToken) {
 		int out = -1;
-		for (STextualRelation stextrel : sToken.getSDocumentGraph().getSTextualRelations()){
-		  if (stextrel.getSToken().equals(sToken)){
-			  out = stextrel.getSEnd();
-			  break;
-		  }
+		for (STextualRelation stextrel : sToken.getSDocumentGraph().getSTextualRelations()) {
+			if (stextrel.getSToken().equals(sToken)) {
+				out = stextrel.getSEnd();
+				break;
+			}
 		}
 		return out;
 	}
 
 	public static int getStartFromSToken(SToken sToken) {
 		int out = -1;
-		for (STextualRelation stextrel : sToken.getSDocumentGraph().getSTextualRelations()){
-		  if (stextrel.getSToken().equals(sToken)){
-			  out = stextrel.getSStart();
-			  break;
-		  }
+		for (STextualRelation stextrel : sToken.getSDocumentGraph().getSTextualRelations()) {
+			if (stextrel.getSToken().equals(sToken)) {
+				out = stextrel.getSStart();
+				break;
+			}
 		}
 		return out;
 	}
@@ -151,8 +151,8 @@ public class AddLinkedElan {
 		ArrayList<SToken> out = new ArrayList<SToken>();
 		int start = getStartFromSToken(sToken);
 		int stop = start + tokensNeeded;
-		for (STextualRelation sTextRel : sDocument.getSDocumentGraph().getSTextualRelations()){
-			if (sTextRel.getSStart() >= start && sTextRel.getSEnd() <= stop){
+		for (STextualRelation sTextRel : sDocument.getSDocumentGraph().getSTextualRelations()) {
+			if (sTextRel.getSStart() >= start && sTextRel.getSEnd() <= stop) {
 				out.add(sTextRel.getSToken());
 			}
 		}
@@ -162,9 +162,9 @@ public class AddLinkedElan {
 	public static EList<SToken> getSTokensFromSSpan(SSpan span) {
 		SDocumentGraph docGraph = span.getSDocumentGraph();
 		EList<SSpanningRelation> spanningRelations = docGraph.getSSpanningRelations();
-		
+
 		EList<SToken> spanTokens = new BasicEList<SToken>();
-		for (SSpanningRelation spanningRel: spanningRelations) {
+		for (SSpanningRelation spanningRel : spanningRelations) {
 			if (spanningRel.getSource() == span) {
 				SToken token = (SToken) spanningRel.getTarget();
 				spanTokens.add(token);
@@ -172,17 +172,17 @@ public class AddLinkedElan {
 		}
 		return spanTokens;
 	}
-	
+
 	public static int getEndFromSSpan(SSpan span, SDocumentGraph docGraph) {
 		EList<SSpanningRelation> spanningRelations = docGraph.getSSpanningRelations();
 		int out = -1;
-		for (SSpanningRelation spanningRel: spanningRelations) {
+		for (SSpanningRelation spanningRel : spanningRelations) {
 			if (spanningRel.getSource() == span) {
 				SToken token = (SToken) spanningRel.getTarget();
 				System.out.println("token in span: " + token);
 				int newStop = getStopFromSToken(token);
 				System.out.println("newStop: " + newStop);
-				if( newStop > out){
+				if (newStop > out) {
 					out = newStop;
 				}
 			}
@@ -193,11 +193,11 @@ public class AddLinkedElan {
 	public static int getStartFromSSpan(SSpan span, SDocumentGraph docGraph) {
 		EList<SSpanningRelation> spanningRelations = docGraph.getSSpanningRelations();
 		int out = 999999999;
-		for (SSpanningRelation spanningRel: spanningRelations) {
+		for (SSpanningRelation spanningRel : spanningRelations) {
 			if (spanningRel.getSource() == span) {
 				SToken token = (SToken) spanningRel.getTarget();
 				int newStart = getStartFromSToken(token);
-				if( newStart < out){
+				if (newStart < out) {
 					out = newStart;
 				}
 			}
@@ -208,22 +208,22 @@ public class AddLinkedElan {
 	public static Collection<SSpan> getSpansContaintingToken(SToken sToken) {
 		Collection<SSpan> out = new ArrayList<SSpan>();
 		SDocumentGraph curSDocGraph = sToken.getSDocumentGraph();
-		
+
 		Collection<SSpan> spans = curSDocGraph.getSSpans();
-		for (SSpan span : spans){			
+		for (SSpan span : spans) {
 			// get tokens in the span
 			EList<SSpanningRelation> spanningRelations = curSDocGraph.getSSpanningRelations();
 			EList<SToken> spanTokens = new BasicEList<SToken>();
-			for (SSpanningRelation spanningRel: spanningRelations) {
+			for (SSpanningRelation spanningRel : spanningRelations) {
 				if (spanningRel.getSource() == span) {
 					SToken token = (SToken) spanningRel.getTarget();
 					spanTokens.add(token);
 				}
 			}
-			if (spanTokens.contains(sToken)){
+			if (spanTokens.contains(sToken)) {
 				out.add(span);
 			}
 		}
 		return out;
-	}	
+	}
 }
