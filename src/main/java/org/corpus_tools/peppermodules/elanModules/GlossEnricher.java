@@ -20,6 +20,7 @@ package org.corpus_tools.peppermodules.elanModules;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import mpi.eudico.server.corpora.clom.Annotation;
@@ -28,21 +29,18 @@ import mpi.eudico.server.corpora.clomimpl.abstr.AbstractAnnotation;
 import mpi.eudico.server.corpora.clomimpl.abstr.TierImpl;
 import mpi.eudico.server.corpora.clomimpl.abstr.TranscriptionImpl;
 
+import org.corpus_tools.pepper.modules.exceptions.PepperModuleException;
 import org.corpus_tools.peppermodules.elanModules.playground.salt.elan2salt.ElanImporterMain;
-import org.eclipse.emf.common.util.BasicEList;
-import org.eclipse.emf.common.util.EList;
-
-import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.exceptions.PepperModuleException;
-import de.hu_berlin.german.korpling.saltnpepper.salt.SaltFactory;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SDocument;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SDataSourceSequence;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SDocumentGraph;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SSpan;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STYPE_NAME;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STextualDS;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STimeline;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STimelineRelation;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SToken;
+import org.corpus_tools.salt.SALT_TYPE;
+import org.corpus_tools.salt.SaltFactory;
+import org.corpus_tools.salt.common.SDocument;
+import org.corpus_tools.salt.common.SDocumentGraph;
+import org.corpus_tools.salt.common.SSpan;
+import org.corpus_tools.salt.common.STextualDS;
+import org.corpus_tools.salt.common.STimeline;
+import org.corpus_tools.salt.common.STimelineRelation;
+import org.corpus_tools.salt.common.SToken;
+import org.corpus_tools.salt.util.DataSourceSequence;
 
 public class GlossEnricher {
 
@@ -103,23 +101,23 @@ public class GlossEnricher {
 		this.curElan = elanModel;
 	}
 
-	public SDocument getSDocument() {
+	public SDocument getDocument() {
 		return this.curSDoc;
 	}
 
-	public void setSDocument(SDocument sDoc) {
+	public void setDocument(SDocument sDoc) {
 		this.curSDoc = sDoc;
 	}
 
-	public STimeline getSTimeline() {
-		return curSDoc.getSDocumentGraph().getSTimeline();
+	public STimeline getTimeline() {
+		return curSDoc.getDocumentGraph().getTimeline();
 	}
 
-	public GlossEnricher(SDocument sDoc, TranscriptionImpl glossElanModel, EList<STimelineRelation> availableTimelineRelations, int posPerToken, ElanImporterProperties props) {
-		setSDocument(sDoc);
+	public GlossEnricher(SDocument sDoc, TranscriptionImpl glossElanModel, List<STimelineRelation> availableTimelineRelations, int posPerToken, ElanImporterProperties props) {
+		setDocument(sDoc);
 		setElanModel(glossElanModel);
 		setProps(props);
-		createPrimaryData(this.getSDocument());
+		createPrimaryData(this.getDocument());
 		makeSTokensForGloss(this.getElanModel(), availableTimelineRelations, posPerToken);
 		addAnnotations();
 	}
@@ -141,7 +139,7 @@ public class GlossEnricher {
 	public void createPrimaryData(SDocument sDocument) {
 		if (sDocument == null)
 			throw new PepperModuleException("Cannot create example, because the given sDocument is empty.");
-		if (sDocument.getSDocumentGraph() == null)
+		if (sDocument.getDocumentGraph() == null)
 			throw new PepperModuleException("Cannot create example, because the given sDocument does not contain an SDocumentGraph.");
 		STextualDS sTextualDS = null;
 		{// creating the primary text
@@ -154,12 +152,12 @@ public class GlossEnricher {
 				// everything can just be concatenated
 				primText.append(charAnno.getValue());
 			}
-			sTextualDS = SaltFactory.eINSTANCE.createSTextualDS();
+			sTextualDS = SaltFactory.createSTextualDS();
 			// ew.getPrimaryText gets the text from the elan document as a
 			// string
-			sTextualDS.setSText(primText.toString());
+			sTextualDS.setText(primText.toString());
 			// adding the text to the document-graph
-			this.getSDocument().getSDocumentGraph().addSNode(sTextualDS);
+			this.getDocument().getDocumentGraph().addNode(sTextualDS);
 		}// creating the primary text
 	}
 
@@ -172,10 +170,10 @@ public class GlossEnricher {
 	 *            segmentations
 	 */
 	@SuppressWarnings("unchecked")
-	public void makeSTokensForGloss(TranscriptionImpl glossElan, EList<STimelineRelation> availableTimelineRelations, int posPerToken) {
+	public void makeSTokensForGloss(TranscriptionImpl glossElan, List<STimelineRelation> availableTimelineRelations, int posPerToken) {
 		// timelinerelationstarts and ends init
-		int startPos = availableTimelineRelations.get(0).getSStart();
-		int endPos = availableTimelineRelations.get(posPerToken - 1).getSEnd();
+		int startPos = availableTimelineRelations.get(0).getStart();
+		int endPos = availableTimelineRelations.get(posPerToken - 1).getEnd();
 
 		// find the tier with the smallest segmentation for the tokens
 		int l = -1;
@@ -190,12 +188,12 @@ public class GlossEnricher {
 		}
 		// set the tokens for the minimal Tier
 		TierImpl smallestTier = (TierImpl) this.getElanModel().getTierWithId(minimalTierName);
-		int amountOfTextualDSs = this.getSDocument().getSDocumentGraph().getSTextualDSs().size();
-		STextualDS primaryText = this.getSDocument().getSDocumentGraph().getSTextualDSs().get(amountOfTextualDSs - 1);
+		int amountOfTextualDSs = this.getDocument().getDocumentGraph().getTextualDSs().size();
+		STextualDS primaryText = this.getDocument().getDocumentGraph().getTextualDSs().get(amountOfTextualDSs - 1);
 
 		// because we need to calculate the positions of the tokens in the
 		// primary text, we need these two things
-		String primtextchangeable = primaryText.getSText();
+		String primtextchangeable = primaryText.getText();
 		int offset = 0;
 
 		// go through the annotations of the tier with the smallest subdivision
@@ -272,7 +270,7 @@ public class GlossEnricher {
 			if (endToken == true & startToken == false) {
 				startStopValues.add(corstart);
 				startStopValues.add(corstop);
-				newToken = this.getSDocument().getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
+				newToken = this.getDocument().getDocumentGraph().createToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
 				startStopValues.removeAll(startStopValues);
 			}
 
@@ -281,7 +279,7 @@ public class GlossEnricher {
 			// starts a new list
 			if (endToken == false & startToken == true) {
 				if (startStopValues.size() > 0) {
-					newToken = this.getSDocument().getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
+					newToken = this.getDocument().getDocumentGraph().createToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
 				}
 				startStopValues.removeAll(startStopValues);
 				startStopValues.add(corstart);
@@ -293,9 +291,9 @@ public class GlossEnricher {
 			// list is resetted
 			if (endToken == true & startToken == true) {
 				if (startStopValues.size() > 0) {
-					newToken = this.getSDocument().getSDocumentGraph().createSToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
+					newToken = this.getDocument().getDocumentGraph().createToken(primaryText, startStopValues.get(0), startStopValues.get(startStopValues.size() - 1));
 				}
-				newToken = this.getSDocument().getSDocumentGraph().createSToken(primaryText, corstart, corstop);
+				newToken = this.getDocument().getDocumentGraph().createToken(primaryText, corstart, corstop);
 				startStopValues.removeAll(startStopValues);
 			}
 
@@ -341,18 +339,18 @@ public class GlossEnricher {
 
 					// create a sequence that we can use to search for a related
 					// token
-					SDataSourceSequence sequence = null;
-					sequence = SaltFactory.eINSTANCE.createSDataSourceSequence();
-					sequence.setSSequentialDS(primaryText);
-					sequence.setSStart((int) beginChar);
-					sequence.setSEnd((int) endChar);
+					DataSourceSequence sequence = null;
+					sequence = new DataSourceSequence();
+					sequence.setDataSource(primaryText);
+					sequence.setStart((int) beginChar);
+					sequence.setEnd((int) endChar);
 
 					// find the relevant tokens
-					EList<SToken> sNewTokens = null;
-					sNewTokens = this.getSDocument().getSDocumentGraph().getSTokensBySequence(sequence);
+					List<SToken> sNewTokens = null;
+					sNewTokens = this.getDocument().getDocumentGraph().getTokensBySequence(sequence);
 					// create the span
-					newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokens);
-					newSpan.createSAnnotation("gloss", tiername, anno.getValue());
+					newSpan = this.getDocument().getDocumentGraph().createSpan(sNewTokens);
+					newSpan.createAnnotation("gloss", tiername, anno.getValue());
 					// add span to glossspans
 					addToGlossSpans(newSpan);
 
@@ -364,12 +362,12 @@ public class GlossEnricher {
 	}
 
 	private void addTokenToTimeline(SToken newToken, int startPos, int endPos) {
-		STimelineRelation sTimeRel = SaltFactory.eINSTANCE.createSTimelineRelation();
-		sTimeRel.setSTimeline(this.getSTimeline());
-		sTimeRel.setSToken(newToken);
-		sTimeRel.setSStart(startPos);
-		sTimeRel.setSEnd(endPos);
-		this.getSDocument().getSDocumentGraph().addSRelation(sTimeRel);
+		STimelineRelation sTimeRel = SaltFactory.createSTimelineRelation();
+		sTimeRel.setTarget(this.getTimeline());
+		sTimeRel.setSource(newToken);
+		sTimeRel.setStart(startPos);
+		sTimeRel.setEnd(endPos);
+		this.getDocument().getDocumentGraph().addRelation(sTimeRel);
 	}
 
 	/**
@@ -379,8 +377,8 @@ public class GlossEnricher {
 	public void addAnnotations() {
 
 		// fetch the primary text
-		int amountOfTextualDSs = this.getSDocument().getSDocumentGraph().getSTextualDSs().size();
-		STextualDS sTextualDS = this.getSDocument().getSDocumentGraph().getSTextualDSs().get(amountOfTextualDSs - 1);
+		int amountOfTextualDSs = this.getDocument().getDocumentGraph().getTextualDSs().size();
+		STextualDS sTextualDS = this.getDocument().getDocumentGraph().getTextualDSs().get(amountOfTextualDSs - 1);
 
 		// go through the tiers in elan
 		for (Object obj : this.getElanModel().getTiers()) {
@@ -418,10 +416,10 @@ public class GlossEnricher {
 					if (!value.isEmpty()) {
 						// create a sequence that we can use to search for a
 						// related span
-						SDataSourceSequence sequence = SaltFactory.eINSTANCE.createSDataSourceSequence();
-						sequence.setSSequentialDS(sTextualDS);
-						sequence.setSStart((int) beginChar);
-						sequence.setSEnd((int) endChar);
+						DataSourceSequence sequence = new DataSourceSequence();
+						sequence.setDataSource(sTextualDS);
+						sequence.setStart((int) beginChar);
+						sequence.setEnd((int) endChar);
 
 						// this span will receive the span which will be
 						// annotated
@@ -430,31 +428,25 @@ public class GlossEnricher {
 						// Let's see if there are already some spans in the
 						// sDocument that fit the bill
 						ArrayList<SSpan> sSpansInSDoc = getGlossSpans();
-						for (int i = lastSpanIndex; i < sSpansInSDoc.size(); i++) { // start
-																					// at
-																					// lastspanIndex,
-																					// because
-																					// previous
-																					// spans
-																					// are
-																					// not
-																					// possible
+						for (int i = lastSpanIndex; i < sSpansInSDoc.size(); i++) {
+							// start at lastspanIndex, because previous spans
+							// are not possible
 							// init the current span
 							SSpan sp = sSpansInSDoc.get(i);
 
 							// find the related DSSequence
-							EList<STYPE_NAME> rels = new BasicEList<STYPE_NAME>();
-							rels.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
-							EList<SDataSourceSequence> sequences = this.getSDocument().getSDocumentGraph().getOverlappedDSSequences(sp, rels);
+							List<SALT_TYPE> rels = new ArrayList<SALT_TYPE>();
+							rels.add(SALT_TYPE.STEXT_OVERLAPPING_RELATION);
+							List<DataSourceSequence> sequences = getDocument().getDocumentGraph().getOverlappedDataSourceSequence(sp, rels);
 
 							// grab the primtext part with the elan anno start
 							// and end info
-							String checkPrimAnno = sTextualDS.getSText().substring(beginChar, endChar).trim();
+							String checkPrimAnno = sTextualDS.getText().substring(beginChar, endChar).trim();
 							// grab the primtext part with the dssequence start
 							// and end info
-							String checkPrimSeq = sTextualDS.getSText().substring(sequences.get(0).getSStart(), sequences.get(0).getSEnd()).trim();
-							int startSeq = sequences.get(0).getSStart();
-							int endSeq = sequences.get(0).getSEnd();
+							String checkPrimSeq = sTextualDS.getText().substring((Integer) sequences.get(0).getStart(), (Integer) sequences.get(0).getEnd()).trim();
+							int startSeq = (Integer) sequences.get(0).getStart();
+							int endSeq = (Integer) sequences.get(0).getEnd();
 
 							// check to see if this is the right span...
 							if (checkPrimAnno.equals(checkPrimSeq)) {
@@ -470,23 +462,23 @@ public class GlossEnricher {
 						}
 
 						if (sSpan != null) {
-							sSpan.createSAnnotation("gloss", tier.getName(), value);
+							sSpan.createAnnotation("gloss", tier.getName(), value);
 						}
 						// ok, last chance, perhaps there was no span yet, so we
 						// have to create one
 						if (sSpan == null) {
 							ArrayList<SToken> sNewTokens = getGlossTokens();
-							EList<SToken> sNewTokensEList = new BasicEList<SToken>();
+							List<SToken> sNewTokensEList = new ArrayList<SToken>();
 							sNewTokensEList.addAll(sNewTokens);
 							if (sNewTokens.size() > 0) {
-								EList<STYPE_NAME> rels = new BasicEList<STYPE_NAME>();
-								rels.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
+								List<SALT_TYPE> rels = new ArrayList<SALT_TYPE>();
+								rels.add(SALT_TYPE.STEXT_OVERLAPPING_RELATION);
 
-								int firstTokenStart = this.getSDocument().getSDocumentGraph().getOverlappedDSSequences(sNewTokens.get(0), rels).get(0).getSStart();
-								int lastTokenEnd = this.getSDocument().getSDocumentGraph().getOverlappedDSSequences(sNewTokens.get(sNewTokens.size() - 1), rels).get(0).getSEnd();
-								if (firstTokenStart == beginChar & lastTokenEnd == endChar) {
-									SSpan newSpan = this.getSDocument().getSDocumentGraph().createSSpan(sNewTokensEList);
-									newSpan.createSAnnotation("gloss", tier.getName(), value);
+								int firstTokenStart = (Integer) getDocument().getDocumentGraph().getOverlappedDataSourceSequence(sNewTokens.get(0), rels).get(0).getStart();
+								int lastTokenEnd = (Integer) getDocument().getDocumentGraph().getOverlappedDataSourceSequence(sNewTokens.get(sNewTokens.size() - 1), rels).get(0).getEnd();
+								if (firstTokenStart == beginChar && lastTokenEnd == endChar) {
+									SSpan newSpan = getDocument().getDocumentGraph().createSpan(sNewTokensEList);
+									newSpan.createAnnotation("gloss", tier.getName(), value);
 								}
 							}
 						}

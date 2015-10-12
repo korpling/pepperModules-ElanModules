@@ -17,13 +17,13 @@
  */
 package org.corpus_tools.peppermodules.elanModules;
 
+import org.corpus_tools.pepper.common.PepperConfiguration;
+import org.corpus_tools.pepper.impl.PepperImporterImpl;
+import org.corpus_tools.pepper.modules.PepperImporter;
+import org.corpus_tools.pepper.modules.PepperMapper;
+import org.corpus_tools.salt.graph.Identifier;
 import org.eclipse.emf.common.util.URI;
 import org.osgi.service.component.annotations.Component;
-
-import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.PepperImporter;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.PepperMapper;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.impl.PepperImporterImpl;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SElementId;
 
 /**
  * @author Tom Ruette
@@ -39,7 +39,7 @@ public class ElanImporter extends PepperImporterImpl implements PepperImporter {
 	public ElanImporter() {
 		super();
 		this.setName("ElanImporter");
-		setSupplierContact(URI.createURI("saltnpepper@lists.hu-berlin.de"));
+		setSupplierContact(URI.createURI(PepperConfiguration.EMAIL));
 		setSupplierHomepage(URI.createURI("https://github.com/korpling/pepperModules-ELANModules"));
 		setDesc("This importer transforms data in ELAN format to a Salt model. ");
 		this.addSupportedFormat("elan", "4.5.0", null);
@@ -47,15 +47,15 @@ public class ElanImporter extends PepperImporterImpl implements PepperImporter {
 
 		// register file endings to be imported
 		for (String ending : ELAN_FILE_ENDINGS)
-			this.getSDocumentEndings().add(ending);
+			this.getDocumentEndings().add(ending);
 	}
 
 	/**
 	 * Creates a mapper of type {@link Elan2SaltMapper}. {@inheritDoc
-	 * PepperModule#createPepperMapper(SElementId)}
+	 * PepperModule#createPepperMapper(Identifier)}
 	 */
 	@Override
-	public PepperMapper createPepperMapper(SElementId sElementId) {
+	public PepperMapper createPepperMapper(Identifier sElementId) {
 		Elan2SaltMapper mapper = new Elan2SaltMapper();
 		return (mapper);
 	}

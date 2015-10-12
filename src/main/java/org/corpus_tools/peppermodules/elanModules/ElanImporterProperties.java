@@ -17,16 +17,16 @@
  */
 package org.corpus_tools.peppermodules.elanModules;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
-import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.PepperModuleProperties;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.PepperModuleProperty;
+import org.corpus_tools.pepper.modules.PepperModuleProperties;
+import org.corpus_tools.pepper.modules.PepperModuleProperty;
 
 /**
  * Defines the properties to be used for the {@link GenericXMLImporter}.
  * 
- * @author Florian Zipser
+ * @author Tom Ruette
  *
  */
 public class ElanImporterProperties extends PepperModuleProperties {
@@ -49,7 +49,7 @@ public class ElanImporterProperties extends PepperModuleProperties {
 	}
 
 	public List<String> getSegmentationTierNames() {
-		List<String> retVal = new Vector<String>();
+		List<String> retVal = new ArrayList<>();
 		;
 		String rawNames = (String) this.getProperty(PROP_SEGMENTATION_TIERNAMES).getValue();
 		if (rawNames != null) {
@@ -65,7 +65,7 @@ public class ElanImporterProperties extends PepperModuleProperties {
 	}
 
 	public List<String> getIgnoreTierNames() {
-		List<String> retVal = new Vector<String>();
+		List<String> retVal = new ArrayList<>();
 		;
 		String rawNames = (String) this.getProperty(PROP_IGNORE_TIERNAMES).getValue();
 		if (rawNames != null) {

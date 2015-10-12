@@ -44,9 +44,9 @@ public class ElanImporterPropertiesTest extends TestCase {
 		String propVal = "firstTier,secondTier, thirdTier,          fourthTier      ";
 		Properties props = new Properties();
 		props.put(ElanImporterProperties.PROP_IGNORE_TIERNAMES, propVal);
-		this.getFixture().setPropertyValues(props);
+		getFixture().setPropertyValues(props);
 
-		List<String> ignoreTierNames = this.getFixture().getIgnoreTierNames();
+		List<String> ignoreTierNames = getFixture().getIgnoreTierNames();
 		assertNotNull(ignoreTierNames);
 		assertEquals(4, ignoreTierNames.size());
 		assertTrue(ignoreTierNames.contains("firstTier"));

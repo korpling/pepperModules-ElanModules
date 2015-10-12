@@ -19,22 +19,20 @@ package org.corpus_tools.peppermodules.elanModules;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import mpi.eudico.server.corpora.clom.Annotation;
 import mpi.eudico.server.corpora.clomimpl.abstr.TierImpl;
 import mpi.eudico.server.corpora.clomimpl.abstr.TranscriptionImpl;
 import mpi.eudico.server.corpora.clomimpl.type.LinguisticType;
 
-import org.eclipse.emf.common.util.BasicEList;
-import org.eclipse.emf.common.util.EList;
-
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SDocument;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SDocumentGraph;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SSpan;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SSpanningRelation;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.STextualRelation;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SToken;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SAnnotation;
+import org.corpus_tools.salt.common.SDocument;
+import org.corpus_tools.salt.common.SDocumentGraph;
+import org.corpus_tools.salt.common.SSpan;
+import org.corpus_tools.salt.common.SSpanningRelation;
+import org.corpus_tools.salt.common.STextualRelation;
+import org.corpus_tools.salt.common.SToken;
+import org.corpus_tools.salt.core.SAnnotation;
 
 public class AddLinkedElan {
 
@@ -86,9 +84,9 @@ public class AddLinkedElan {
 
 	public static Collection<SToken> getSTokensForGloss(SDocument sDocument, String glossid) {
 		Collection<SToken> out = null;
-		for (SSpan span : sDocument.getSDocumentGraph().getSSpans()) {
-			for (SAnnotation sAnno : span.getSAnnotations()) {
-				if (sAnno.getSName().equals("Glosse")) {
+		for (SSpan span : sDocument.getDocumentGraph().getSpans()) {
+			for (SAnnotation sAnno : span.getAnnotations()) {
+				if (sAnno.getName().equals("Glosse")) {
 					String annoValue = sAnno.getValue().toString();
 					if (annoValue.equals(glossid)) {
 						out = getSTokensFromSSpan(span);
@@ -114,10 +112,10 @@ public class AddLinkedElan {
 		return count;
 	}
 
-	private static STextualRelation getSTextualRelationFromSToken(SToken stok) {
+	private static STextualRelation getTextualRelationFromSToken(SToken stok) {
 		STextualRelation out = null;
-		for (STextualRelation stextrel : stok.getSDocumentGraph().getSTextualRelations()) {
-			if (stextrel.getSToken().equals(stok)) {
+		for (STextualRelation stextrel : stok.getGraph().getTextualRelations()) {
+			if (stextrel.getSource().equals(stok)) {
 				out = stextrel;
 				break;
 			}
@@ -127,9 +125,9 @@ public class AddLinkedElan {
 
 	public static int getStopFromSToken(SToken sToken) {
 		int out = -1;
-		for (STextualRelation stextrel : sToken.getSDocumentGraph().getSTextualRelations()) {
-			if (stextrel.getSToken().equals(sToken)) {
-				out = stextrel.getSEnd();
+		for (STextualRelation stextrel : sToken.getGraph().getTextualRelations()) {
+			if (stextrel.getSource().equals(sToken)) {
+				out = stextrel.getEnd();
 				break;
 			}
 		}
@@ -138,9 +136,9 @@ public class AddLinkedElan {
 
 	public static int getStartFromSToken(SToken sToken) {
 		int out = -1;
-		for (STextualRelation stextrel : sToken.getSDocumentGraph().getSTextualRelations()) {
-			if (stextrel.getSToken().equals(sToken)) {
-				out = stextrel.getSStart();
+		for (STextualRelation stextrel : sToken.getGraph().getTextualRelations()) {
+			if (stextrel.getSource().equals(sToken)) {
+				out = stextrel.getStart();
 				break;
 			}
 		}
@@ -151,19 +149,19 @@ public class AddLinkedElan {
 		ArrayList<SToken> out = new ArrayList<SToken>();
 		int start = getStartFromSToken(sToken);
 		int stop = start + tokensNeeded;
-		for (STextualRelation sTextRel : sDocument.getSDocumentGraph().getSTextualRelations()) {
-			if (sTextRel.getSStart() >= start && sTextRel.getSEnd() <= stop) {
-				out.add(sTextRel.getSToken());
+		for (STextualRelation sTextRel : sDocument.getDocumentGraph().getTextualRelations()) {
+			if (sTextRel.getStart() >= start && sTextRel.getEnd() <= stop) {
+				out.add(sTextRel.getSource());
 			}
 		}
 		return out;
 	}
 
-	public static EList<SToken> getSTokensFromSSpan(SSpan span) {
-		SDocumentGraph docGraph = span.getSDocumentGraph();
-		EList<SSpanningRelation> spanningRelations = docGraph.getSSpanningRelations();
+	public static List<SToken> getSTokensFromSSpan(SSpan span) {
+		SDocumentGraph docGraph = span.getGraph();
+		List<SSpanningRelation> spanningRelations = docGraph.getSpanningRelations();
 
-		EList<SToken> spanTokens = new BasicEList<SToken>();
+		List<SToken> spanTokens = new ArrayList<SToken>();
 		for (SSpanningRelation spanningRel : spanningRelations) {
 			if (spanningRel.getSource() == span) {
 				SToken token = (SToken) spanningRel.getTarget();
@@ -174,14 +172,12 @@ public class AddLinkedElan {
 	}
 
 	public static int getEndFromSSpan(SSpan span, SDocumentGraph docGraph) {
-		EList<SSpanningRelation> spanningRelations = docGraph.getSSpanningRelations();
+		List<SSpanningRelation> spanningRelations = docGraph.getSpanningRelations();
 		int out = -1;
 		for (SSpanningRelation spanningRel : spanningRelations) {
 			if (spanningRel.getSource() == span) {
 				SToken token = (SToken) spanningRel.getTarget();
-				System.out.println("token in span: " + token);
 				int newStop = getStopFromSToken(token);
-				System.out.println("newStop: " + newStop);
 				if (newStop > out) {
 					out = newStop;
 				}
@@ -191,7 +187,7 @@ public class AddLinkedElan {
 	}
 
 	public static int getStartFromSSpan(SSpan span, SDocumentGraph docGraph) {
-		EList<SSpanningRelation> spanningRelations = docGraph.getSSpanningRelations();
+		List<SSpanningRelation> spanningRelations = docGraph.getSpanningRelations();
 		int out = 999999999;
 		for (SSpanningRelation spanningRel : spanningRelations) {
 			if (spanningRel.getSource() == span) {
@@ -207,13 +203,13 @@ public class AddLinkedElan {
 
 	public static Collection<SSpan> getSpansContaintingToken(SToken sToken) {
 		Collection<SSpan> out = new ArrayList<SSpan>();
-		SDocumentGraph curSDocGraph = sToken.getSDocumentGraph();
+		SDocumentGraph curSDocGraph = sToken.getGraph();
 
-		Collection<SSpan> spans = curSDocGraph.getSSpans();
+		Collection<SSpan> spans = curSDocGraph.getSpans();
 		for (SSpan span : spans) {
 			// get tokens in the span
-			EList<SSpanningRelation> spanningRelations = curSDocGraph.getSSpanningRelations();
-			EList<SToken> spanTokens = new BasicEList<SToken>();
+			List<SSpanningRelation> spanningRelations = curSDocGraph.getSpanningRelations();
+			List<SToken> spanTokens = new ArrayList<SToken>();
 			for (SSpanningRelation spanningRel : spanningRelations) {
 				if (spanningRel.getSource() == span) {
 					SToken token = (SToken) spanningRel.getTarget();
