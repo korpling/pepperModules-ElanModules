@@ -15,7 +15,7 @@
  *
  *
  */
-package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules;
+package org.corpus_tools.peppermodules.elanModules;
 
 import org.eclipse.emf.common.util.URI;
 import org.osgi.service.component.annotations.Component;

@@ -15,13 +15,14 @@
  *
  *
  */
-package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.tests;
+package org.corpus_tools.peppermodules.elanModules.tests;
 
 import java.util.List;
 import java.util.Properties;
 
+import org.corpus_tools.peppermodules.elanModules.ElanImporterProperties;
+
 import junit.framework.TestCase;
-import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.ElanImporterProperties;
 
 public class ElanImporterPropertiesTest extends TestCase
 {

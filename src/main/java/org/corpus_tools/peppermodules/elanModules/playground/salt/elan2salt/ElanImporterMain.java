@@ -15,7 +15,7 @@
  *
  *
  */
-package de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.playground.salt.elan2salt;
+package org.corpus_tools.peppermodules.elanModules.playground.salt.elan2salt;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,10 +27,10 @@ import java.util.Collection;
 import java.util.Properties;
 import java.util.Vector;
 
+import org.corpus_tools.peppermodules.elanModules.Elan2SaltMapper;
 import org.eclipse.emf.common.util.URI;
 import org.xml.sax.SAXException;
 
-import de.hu_berlin.german.korpling.saltnpepper.pepperModules.elanModules.Elan2SaltMapper;
 import de.hu_berlin.german.korpling.saltnpepper.salt.SaltFactory;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.SaltProject;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpus;
