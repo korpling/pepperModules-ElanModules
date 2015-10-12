@@ -20,9 +20,9 @@ package org.corpus_tools.peppermodules.elanModules.tests;
 import java.util.List;
 import java.util.Properties;
 
-import org.corpus_tools.peppermodules.elanModules.ElanImporterProperties;
-
 import junit.framework.TestCase;
+
+import org.corpus_tools.peppermodules.elanModules.ElanImporterProperties;
 
 public class ElanImporterPropertiesTest extends TestCase
 {

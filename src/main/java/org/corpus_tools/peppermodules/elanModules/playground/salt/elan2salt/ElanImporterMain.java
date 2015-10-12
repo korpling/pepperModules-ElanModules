@@ -18,13 +18,8 @@
 package org.corpus_tools.peppermodules.elanModules.playground.salt.elan2salt;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.Collection;
-import java.util.Properties;
 import java.util.Vector;
 
 import org.corpus_tools.peppermodules.elanModules.Elan2SaltMapper;
