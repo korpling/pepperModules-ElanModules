@@ -399,9 +399,8 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper {
 							SSpan sp = sSpansInSDoc.get(i);
 
 							// find the related DSSequence
-							List<SALT_TYPE> rels = new ArrayList<SALT_TYPE>();
-							rels.add(SALT_TYPE.STEXT_OVERLAPPING_RELATION);
-							List<DataSourceSequence> sequences = getDocument().getDocumentGraph().getOverlappedDataSourceSequence(sp, rels);
+						List<DataSourceSequence> sequences = 
+                            getDocument().getDocumentGraph().getOverlappedDataSourceSequence(sp, SALT_TYPE.STEXT_OVERLAPPING_RELATION);
 
 							// grab the start en end of the first sequence for
 							// comparison with the anno start and end

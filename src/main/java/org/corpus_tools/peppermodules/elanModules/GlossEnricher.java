@@ -435,9 +435,8 @@ public class GlossEnricher {
 							SSpan sp = sSpansInSDoc.get(i);
 
 							// find the related DSSequence
-							List<SALT_TYPE> rels = new ArrayList<SALT_TYPE>();
-							rels.add(SALT_TYPE.STEXT_OVERLAPPING_RELATION);
-							List<DataSourceSequence> sequences = getDocument().getDocumentGraph().getOverlappedDataSourceSequence(sp, rels);
+							List<DataSourceSequence> sequences = 
+                                getDocument().getDocumentGraph().getOverlappedDataSourceSequence(sp, SALT_TYPE.STEXT_OVERLAPPING_RELATION);
 
 							// grab the primtext part with the elan anno start
 							// and end info
@@ -471,11 +470,11 @@ public class GlossEnricher {
 							List<SToken> sNewTokensEList = new ArrayList<SToken>();
 							sNewTokensEList.addAll(sNewTokens);
 							if (sNewTokens.size() > 0) {
-								List<SALT_TYPE> rels = new ArrayList<SALT_TYPE>();
-								rels.add(SALT_TYPE.STEXT_OVERLAPPING_RELATION);
-
-								int firstTokenStart = (Integer) getDocument().getDocumentGraph().getOverlappedDataSourceSequence(sNewTokens.get(0), rels).get(0).getStart();
-								int lastTokenEnd = (Integer) getDocument().getDocumentGraph().getOverlappedDataSourceSequence(sNewTokens.get(sNewTokens.size() - 1), rels).get(0).getEnd();
+								
+								int firstTokenStart = (Integer) getDocument().getDocumentGraph().getOverlappedDataSourceSequence(sNewTokens.get(0), 
+                                    SALT_TYPE.STEXT_OVERLAPPING_RELATION).get(0).getStart();
+								int lastTokenEnd = (Integer) getDocument().getDocumentGraph().getOverlappedDataSourceSequence(sNewTokens.get(sNewTokens.size() - 1), 
+                                    SALT_TYPE.STEXT_OVERLAPPING_RELATION).get(0).getEnd();
 								if (firstTokenStart == beginChar && lastTokenEnd == endChar) {
 									SSpan newSpan = getDocument().getDocumentGraph().createSpan(sNewTokensEList);
 									newSpan.createAnnotation("gloss", tier.getName(), value);
