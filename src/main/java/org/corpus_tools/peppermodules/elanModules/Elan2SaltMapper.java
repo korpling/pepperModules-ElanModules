@@ -62,6 +62,12 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper {
 	private static final Logger logger = LoggerFactory.getLogger(Elan2SaltMapper.class);
 	// properties to be set, I guess
 	public static final String NAMESPACE_ELAN = "elan";
+	public final String NAMESPACE;
+	
+	public Elan2SaltMapper(){
+		super();
+		NAMESPACE = ((ElanImporterProperties)this.getProperties()).dropNamespaces()? null : NAMESPACE_ELAN;
+	}
 
 	// variables that I want to keep track of in the whole class, but that are
 	// not set initially
@@ -420,7 +426,7 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper {
 						// if we found a span that fits, add the annotation to
 						// it
 						if (sSpan != null) {
-							sSpan.createAnnotation(NAMESPACE_ELAN, tier.getName(), value);
+							sSpan.createAnnotation(NAMESPACE, tier.getName(), value);
 						}
 
 						// if there was no span yet, create a new one and add
@@ -434,7 +440,7 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper {
 								// given these tokens, create a span and add the
 								// annotation
 								SSpan newSpan = getDocument().getDocumentGraph().createSpan(sNewTokens);
-								newSpan.createAnnotation(NAMESPACE_ELAN, tier.getName(), value);
+								newSpan.createAnnotation(NAMESPACE, tier.getName(), value);
 							}
 						}
 					}
@@ -625,7 +631,7 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper {
 					sNewTokens = getDocument().getDocumentGraph().getTokensBySequence(sequence);
 					// create the span
 					newSpan = getDocument().getDocumentGraph().createSpan(sNewTokens);
-					newSpan.createAnnotation(NAMESPACE_ELAN, tiername, anno.getValue());
+					newSpan.createAnnotation(NAMESPACE, tiername, anno.getValue());
 				} catch (Exception e) {
 					throw new PepperModuleException(this, "something wrong at " + beginTime + " up to " + endTime + "in file " + this.getElanModel().getFullPath());
 				}

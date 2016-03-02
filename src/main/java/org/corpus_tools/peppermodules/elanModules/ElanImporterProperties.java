@@ -32,16 +32,23 @@ import org.corpus_tools.pepper.modules.PepperModuleProperty;
 public class ElanImporterProperties extends PepperModuleProperties {
 	public static final String PREFIX = "elan.importer.";
 
+	/** Name of the tier containing the primary text. */
 	public static final String PROP_PRIMARY_TEXT_TIER_NAME = PREFIX + "primTextTierName";
+	/** Names of the tiers that will be used as segmentation layers." */
 	public static final String PROP_SEGMENTATION_TIERNAMES = PREFIX + "segTierNames";
+	/** Names of the tiers that will be ignored. */
 	public static final String PROP_IGNORE_TIERNAMES = PREFIX + "ignoreTierNames";
+	/** Location of the linked files. */
 	public static final String PROP_LINKED_FOLDER = PREFIX + "linkedFolder";
+	/** Determines whether the elan namespace will be kept in annotation names. */
+	public static final String PROP_DROP_NAMESPACE = PREFIX + "dropNamespace";
 
 	public ElanImporterProperties() {
 		this.addProperty(new PepperModuleProperty<String>(PROP_PRIMARY_TEXT_TIER_NAME, String.class, "Name of the tier containing the primary text.", false));
 		this.addProperty(new PepperModuleProperty<String>(PROP_SEGMENTATION_TIERNAMES, String.class, "Names of the tiers that will be used as segmentation layers.", false));
 		this.addProperty(new PepperModuleProperty<String>(PROP_IGNORE_TIERNAMES, String.class, "Names of the tiers that will be ignored.", false));
 		this.addProperty(new PepperModuleProperty<String>(PROP_LINKED_FOLDER, String.class, "Location of the linked files.", false));
+		this.addProperty(new PepperModuleProperty<Boolean>(PROP_DROP_NAMESPACE, Boolean.class, "Determines whether the elan namespace will be kept in annotation names.", true, false));
 	}
 
 	public String getPrimTextTierName() {
@@ -82,6 +89,10 @@ public class ElanImporterProperties extends PepperModuleProperties {
 
 	public String getLinkedFolder() {
 		return ((String) this.getProperty(PROP_LINKED_FOLDER).getValue());
+	}
+	
+	public boolean dropNamespaces(){
+		return Boolean.TRUE.equals(Boolean.parseBoolean(this.getProperty(PROP_DROP_NAMESPACE).getValue().toString()));
 	}
 
 }
