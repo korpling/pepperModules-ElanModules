@@ -60,7 +60,10 @@ import org.slf4j.LoggerFactory;
  */
 public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper {
 	private static final Logger logger = LoggerFactory.getLogger(Elan2SaltMapper.class);
-	public String annoNS = null;
+	/** namespace of annotations */
+	private String annoNS = null;
+	/** folder of metadata files */
+	private String mdDir = null;
 
 	// variables that I want to keep track of in the whole class, but that are
 	// not set initially
@@ -122,6 +125,7 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper {
 	public DOCUMENT_STATUS mapSDocument() {
 		// read properties
 		annoNS = this.getProps().getAnnotationNamespace();
+		mdDir = this.getProps().getMetadataFolderPath();
 		// set the elan document
 		setElanModel(this.getResourceURI().toFileString());
 		if (getDocument().getDocumentGraph() == null)
@@ -190,12 +194,12 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper {
 		// go through the elan document and add annotations
 		addAnnotations();
 
-		// if there are meta data in attribute value form in ./meta, add them to
+		// if there are meta data in attribute value form in the metadata folder (set by property, default: ./meta), add them to
 		// the document
 		try {
 			addMetaAnnotations();
 		} catch (IOException e) {
-
+			logger.error("An error occured reading the metadata. No metadata will be available.");
 		}
 
 		// add a linked elan file
@@ -293,10 +297,10 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper {
 	public void addMetaAnnotations() throws IOException {
 		String path = this.getResourceURI().toFileString();
 		// get to the metadata
-		String[] segments = path.split("/");
+		String[] segments = path.split(File.separator);
 		if (segments.length > 2) {
 			String target = segments[segments.length - 2];
-			path = path.replace(target, "meta");
+			path = path.replace(target, mdDir);
 		}
 		if (segments.length > 1) {
 			String fname = segments[segments.length - 1];

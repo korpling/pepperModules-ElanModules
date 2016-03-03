@@ -29,19 +29,21 @@ import org.corpus_tools.pepper.modules.PepperModuleProperty;
  * @author Tom Ruette
  *
  */
+@SuppressWarnings("serial")
 public class ElanImporterProperties extends PepperModuleProperties {
-	public static final String PREFIX = "elan.importer.";
 
 	/** Name of the tier containing the primary text. */
-	public static final String PROP_PRIMARY_TEXT_TIER_NAME = PREFIX + "primTextTierName";
+	public static final String PROP_PRIMARY_TEXT_TIER_NAME = "primTextTierName";
 	/** Names of the tiers that will be used as segmentation layers." */
-	public static final String PROP_SEGMENTATION_TIERNAMES = PREFIX + "segTierNames";
+	public static final String PROP_SEGMENTATION_TIERNAMES = "segTierNames";
 	/** Names of the tiers that will be ignored. */
-	public static final String PROP_IGNORE_TIERNAMES = PREFIX + "ignoreTierNames";
+	public static final String PROP_IGNORE_TIERNAMES = "ignoreTierNames";
 	/** Location of the linked files. */
-	public static final String PROP_LINKED_FOLDER = PREFIX + "linkedFolder";
+	public static final String PROP_LINKED_FOLDER = "linkedFolder";
 	/** Determines the namespace used for annotation names. */
-	public static final String PROP_ANNO_NAMESPACE = PREFIX + "annotationNamespace";
+	public static final String PROP_ANNO_NAMESPACE = "annotationNamespace";
+	/** Path of the metadata folder. */
+	public static final String PROP_METADATA_FOLDER = "metadataFolder";
 
 	public ElanImporterProperties() {
 		this.addProperty(new PepperModuleProperty<String>(PROP_PRIMARY_TEXT_TIER_NAME, String.class, "Name of the tier containing the primary text.", false));
@@ -49,6 +51,7 @@ public class ElanImporterProperties extends PepperModuleProperties {
 		this.addProperty(new PepperModuleProperty<String>(PROP_IGNORE_TIERNAMES, String.class, "Names of the tiers that will be ignored.", false));
 		this.addProperty(new PepperModuleProperty<String>(PROP_LINKED_FOLDER, String.class, "Location of the linked files.", false));
 		this.addProperty(new PepperModuleProperty<String>(PROP_ANNO_NAMESPACE, String.class, "Determines the namespace used for annotation names.", null, false));
+		this.addProperty(new PepperModuleProperty<String>(PROP_METADATA_FOLDER, String.class, "Path of the metadata folder.", "./meta", false));
 	}
 
 	public String getPrimTextTierName() {
@@ -92,6 +95,10 @@ public class ElanImporterProperties extends PepperModuleProperties {
 	
 	public String getAnnotationNamespace(){		
 		return (String)this.getProperty(PROP_ANNO_NAMESPACE).getValue();
+	}
+	
+	public String getMetadataFolderPath(){
+		return this.getProperty(PROP_METADATA_FOLDER).getValue().toString();
 	}
 
 }
