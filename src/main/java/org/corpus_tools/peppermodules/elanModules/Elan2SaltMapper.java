@@ -60,12 +60,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper {
 	private static final Logger logger = LoggerFactory.getLogger(Elan2SaltMapper.class);
-	public final String annoNS;
-	
-	public Elan2SaltMapper(){
-		super();
-		annoNS = ((ElanImporterProperties)this.getProperties()).getAnnotationNamespace();
-	}
+	public String annoNS = null;
 
 	// variables that I want to keep track of in the whole class, but that are
 	// not set initially
@@ -125,6 +120,8 @@ public class Elan2SaltMapper extends PepperMapperImpl implements PepperMapper {
 	 */
 	@Override
 	public DOCUMENT_STATUS mapSDocument() {
+		// read properties
+		annoNS = this.getProps().getAnnotationNamespace();
 		// set the elan document
 		setElanModel(this.getResourceURI().toFileString());
 		if (getDocument().getDocumentGraph() == null)

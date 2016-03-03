@@ -57,7 +57,6 @@ public class ElanImporterProperties extends PepperModuleProperties {
 
 	public List<String> getSegmentationTierNames() {
 		List<String> retVal = new ArrayList<>();
-		;
 		String rawNames = (String) this.getProperty(PROP_SEGMENTATION_TIERNAMES).getValue();
 		if (rawNames != null) {
 			String[] rawNamesArr = rawNames.split(",");
@@ -91,7 +90,7 @@ public class ElanImporterProperties extends PepperModuleProperties {
 		return ((String) this.getProperty(PROP_LINKED_FOLDER).getValue());
 	}
 	
-	public String getAnnotationNamespace(){
+	public String getAnnotationNamespace(){		
 		return (String)this.getProperty(PROP_ANNO_NAMESPACE).getValue();
 	}
 

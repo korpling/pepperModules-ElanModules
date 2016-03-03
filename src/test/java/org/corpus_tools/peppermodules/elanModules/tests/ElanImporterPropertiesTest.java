@@ -20,9 +20,12 @@ package org.corpus_tools.peppermodules.elanModules.tests;
 import java.util.List;
 import java.util.Properties;
 
-import junit.framework.TestCase;
-
+import org.corpus_tools.pepper.modules.PepperModuleProperties;
 import org.corpus_tools.peppermodules.elanModules.ElanImporterProperties;
+import org.junit.Before;
+import org.junit.Test;
+
+import junit.framework.TestCase;
 
 public class ElanImporterPropertiesTest extends TestCase {
 
@@ -35,11 +38,13 @@ public class ElanImporterPropertiesTest extends TestCase {
 	public void setFixture(ElanImporterProperties fixture) {
 		this.fixture = fixture;
 	}
-
+	
+	@Before
 	public void setUp() {
 		this.setFixture(new ElanImporterProperties());
 	}
 
+	@Test
 	public void testGetIgnoreTierNames() {
 		String propVal = "firstTier,secondTier, thirdTier,          fourthTier      ";
 		Properties props = new Properties();
@@ -53,5 +58,11 @@ public class ElanImporterPropertiesTest extends TestCase {
 		assertTrue(ignoreTierNames.contains("secondTier"));
 		assertTrue(ignoreTierNames.contains("thirdTier"));
 		assertTrue(ignoreTierNames.contains("fourthTier"));
+	}
+	
+	@Test
+	public void test_getAnnotationNamespace_default(){
+		ElanImporterProperties props = this.getFixture();
+		assertNull(props.getAnnotationNamespace());
 	}
 }
