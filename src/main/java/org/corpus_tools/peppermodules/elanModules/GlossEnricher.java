@@ -435,7 +435,7 @@ public class GlossEnricher {
 							SSpan sp = sSpansInSDoc.get(i);
 
 							// find the related DSSequence
-							List<DataSourceSequence> sequences = 
+							List<? extends DataSourceSequence<?>> sequences = 
                                 getDocument().getDocumentGraph().getOverlappedDataSourceSequence(sp, SALT_TYPE.STEXT_OVERLAPPING_RELATION);
 
 							// grab the primtext part with the elan anno start
