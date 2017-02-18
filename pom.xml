@@ -25,7 +25,7 @@
 	<parent>
 		<groupId>org.corpus-tools</groupId>
 		<artifactId>pepper-parentModule</artifactId>
-		<version>3.0.0</version>
+		<version>3.1.0</version>
 	</parent>
 	<description />
 	<url>https://korpling.german.hu-berlin.de/p/projects/peppermodules-elanmodules</url>
@@ -39,7 +39,7 @@
 	</ciManagement>
 	<inceptionYear>2013</inceptionYear>
 	<organization>
-		<name>Humboldt-Universität zu Berlin, Sprachgeschichte</name>
+		<name>Humboldt-Universit&#228;t zu Berlin, Sprachgeschichte</name>
 	</organization>
 	<scm>
 		<connection>scm:git:git://github.com/github.com:korpling/pepperModules-ElanModules.git</connection>
