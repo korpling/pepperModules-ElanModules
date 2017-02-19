@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>pepperModules-ElanModules</artifactId>
 	<name>${project.groupId}.${project.artifactId}</name>
-	<version>1.1.6-SNAPSHOT</version>
+	<version>1.1.7-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 	<licenses>
 		<license>
@@ -39,7 +39,7 @@
 	</ciManagement>
 	<inceptionYear>2013</inceptionYear>
 	<organization>
-		<name>Humboldt-Universit&#228;t zu Berlin, Sprachgeschichte</name>
+		<name>Humboldt-Universität zu Berlin, Sprachgeschichte</name>
 	</organization>
 	<scm>
 		<connection>scm:git:git://github.com/github.com:korpling/pepperModules-ElanModules.git</connection>
